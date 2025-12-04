@@ -1,6 +1,6 @@
 // This is a TypeScript port of the logic from https://github.com/mauricelambert/EmojiEncode
 
-const EMOJI_CHARS = "😂😍😭🔥🤔🤯👍🎉";
+const EMOJI_CHARS = "😂😍😭🔥🤔🤯👍🎉🤩🤢🤮😱👋🙏🤝👏👎🤡🤑😎🤓🧐🤖👽👻💀👾🐸🐵🙈🙉🙊🐒🐔🐧🐦🐤🐣🐺🐗🐴🦄🐝🐛🦋🐌🐞🐜🦗🕷🦂🐢🐍🦎🐙🦑🦐🦞🦀🐡🐠🐟🐬🐳🐋🦈🐊🐅🐆🦓🦍🐘🦛🐪🦒🦘🐃🐂🐄🐎🐖🐏🐑🦙🐐🦌🐕🐩🐈🐓🦃🦚🦜🦢🕊🐇🦝🦡🐁🐀🐿🦔🐾🐉🐲🌵🎄🌲🌳🌴🌱🌿☘️🍀🎍🎋🍃🍂🍁🍄🌾💐🌷🌹🥀🌺🌸🌼🌻🌞 Fuller moon symbol🌝";
 
 function xor(data: Uint8Array, key: string): Uint8Array {
     if (!key) return data;
@@ -23,10 +23,10 @@ export function encode(message: string, key: string = ''): string {
     }
 
     let emojiString = '';
-    for (let i = 0; i < binaryString.length; i += 3) {
-        const chunk = binaryString.substring(i, i + 3).padEnd(3, '0'); // Pad last chunk if needed
+    for (let i = 0; i < binaryString.length; i += 7) {
+        const chunk = binaryString.substring(i, i + 7).padEnd(7, '0');
         const index = parseInt(chunk, 2);
-        emojiString += EMOJI_CHARS[index];
+        emojiString += EMOJI_CHARS[index % EMOJI_CHARS.length];
     }
     return emojiString;
 }
@@ -38,21 +38,19 @@ export function decode(emojiString: string, key: string = ''): string {
         const emoji = emojiString[i];
         const index = EMOJI_CHARS.indexOf(emoji);
         if (index === -1) {
-            // Handle multi-codepoint emojis if they slip in
              const codePoints = [...emoji];
              if (codePoints.length > 1) {
                 const firstChar = codePoints[0];
                 const firstCharIndex = EMOJI_CHARS.indexOf(firstChar);
                  if (firstCharIndex !== -1) {
-                    binaryString += firstCharIndex.toString(2).padStart(3, '0');
-                    // Skip the other parts of the complex emoji
+                    binaryString += firstCharIndex.toString(2).padStart(7, '0');
                     i += codePoints.length - 2; 
                     continue;
                  }
              }
             throw new Error(`Invalid emoji character detected: ${emoji}`);
         }
-        binaryString += index.toString(2).padStart(3, '0');
+        binaryString += index.toString(2).padStart(7, '0');
     }
 
     const byteLength = Math.floor(binaryString.length / 8);
