@@ -26,6 +26,8 @@ import { ContentType, Severity } from '@/lib/types';
 import { DashboardTable } from './dashboard-table';
 import { Download, Filter, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Hyperspeed from './hyperspeed';
+import { hyperspeedPresets } from './hyperspeed-presets';
 
 export default function DashboardPageClient() {
   const { logs, clearLogs } = useLogStore();
@@ -58,10 +60,13 @@ export default function DashboardPageClient() {
   };
 
   return (
-    <div className="container mx-auto p-4 md:p-8 flex-1 flex flex-col">
+    <div className="container mx-auto p-4 md:p-8 flex-1 flex flex-col relative z-10">
+       <div className="absolute inset-0 -z-10">
+        <Hyperspeed effectOptions={hyperspeedPresets.one} />
+      </div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight font-headline">Dashboard</h2>
+          <h2 className="text-3xl font-bold tracking-tight font-headline text-white">Dashboard</h2>
           <p className="text-muted-foreground">Review and manage your scan history.</p>
         </div>
 
@@ -94,7 +99,7 @@ export default function DashboardPageClient() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 mb-4 p-4 bg-card border rounded-lg">
+      <div className="flex items-center gap-2 mb-4 p-4 bg-card/80 backdrop-blur-sm border rounded-lg">
         <Filter className="h-5 w-5 text-muted-foreground"/>
         <span className="font-medium mr-4">Filters:</span>
         <Select
@@ -127,9 +132,5 @@ export default function DashboardPageClient() {
         </Select>
       </div>
       
-      <div className="border rounded-lg flex-1">
-        <DashboardTable logs={filteredLogs} />
-      </div>
-    </div>
-  );
-}
+      <div className="border rounded-lg flex-1 bg-card/80 backdrop-blur-sm">
+        <DashboardTable

@@ -27,20 +27,10 @@ export default function RootLayout({
       </head>
       <body
         className={cn(
-          'font-body antialiased h-full flex flex-col',
+          'font-body antialiased h-full flex flex-col bg-black',
           process.env.NODE_ENV === 'development' ? 'debug-screens' : ''
         )}
       >
-        <div className="fixed top-0 left-0 w-full h-full -z-10 bg-background">
-          <FloatingLines 
-            linesGradient={["#2C3E50", "#3498DB"]}
-            lineCount={12}
-            lineDistance={0.1}
-            animationSpeed={0.3}
-            bendStrength={-0.2}
-            enabledWaves={['middle', 'bottom']}
-          />
-        </div>
         <Header />
         <main className="flex-1 flex flex-col">{children}</main>
         <Toaster />

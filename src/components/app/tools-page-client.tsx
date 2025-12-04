@@ -12,6 +12,8 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Hyperspeed from './hyperspeed';
+import { hyperspeedPresets } from './hyperspeed-presets';
 
 
 function Encoder() {
@@ -29,7 +31,7 @@ function Encoder() {
   }, [state, toast]);
 
   return (
-    <Card>
+    <Card className="bg-card/80 backdrop-blur-sm">
       <CardHeader>
         <CardTitle>EmojiEncoder</CardTitle>
         <CardDescription>Hide a secret message within a block of emojis. Provide an optional password for encryption.</CardDescription>
@@ -78,7 +80,7 @@ function Decoder() {
   }, [state, toast]);
 
   return (
-    <Card>
+    <Card className="bg-card/80 backdrop-blur-sm">
       <CardHeader>
         <CardTitle>EmojiDecoder</CardTitle>
         <CardDescription>Extract a secret message from a block of emojis. Provide the password if it was encrypted.</CardDescription>
@@ -114,9 +116,12 @@ function Decoder() {
 
 export default function EmojiEncodeClient() {
   return (
-    <div className="container mx-auto p-4 md:p-8">
+    <div className="container mx-auto p-4 md:p-8 relative z-10">
+       <div className="absolute inset-0 -z-10">
+        <Hyperspeed effectOptions={hyperspeedPresets.one} />
+      </div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight font-headline">Steganography Tools</h1>
+        <h1 className="text-3xl font-bold tracking-tight font-headline text-white">Steganography Tools</h1>
         <p className="text-muted-foreground">Encode and decode hidden messages using various techniques.</p>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">

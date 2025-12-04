@@ -31,6 +31,8 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import Hyperspeed from './hyperspeed';
+import { hyperspeedPresets } from './hyperspeed-presets';
 
 const formSchema = z.object({
   textInput: z.string().optional(),
@@ -122,9 +124,12 @@ export default function ScanPageClient() {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-8 flex-1">
+    <div className="container mx-auto p-4 md:p-8 flex-1 relative z-10">
+      <div className="absolute inset-0 -z-10">
+        <Hyperspeed effectOptions={hyperspeedPresets.one} />
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        <Card>
+        <Card className="bg-card/80 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="font-headline">Analyze Content</CardTitle>
           </CardHeader>
@@ -197,7 +202,7 @@ export default function ScanPageClient() {
         </Card>
 
         <div className="sticky top-20">
-          <Card className="min-h-[400px]">
+          <Card className="min-h-[400px] bg-card/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="font-headline">Scan Result</CardTitle>
             </CardHeader>
@@ -254,7 +259,7 @@ function FileSearchIcon(props: React.SVGProps<SVGSVGElement>) {
       xmlns="http://www.w3.org/2000/svg"
       width="24"
       height="24"
-      viewBox="0 0 24 24"
+      viewBox="0 0 24"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
@@ -266,6 +271,4 @@ function FileSearchIcon(props: React.SVGProps<SVGSVGElement>) {
       <path d="m3 12.5 1.7-1.7a2.8 2.8 0 0 1 4 0l1.6 1.6" />
       <path d="m2 17 3-3" />
       <circle cx="12" cy="16" r="3" />
-    </svg>
-  )
-}
+    
