@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { motion } from 'motion/react';
+import { animate } from 'motion';
 
 const styles = {
   wrapper: {
     display: 'inline-block',
-    whiteSpace: 'pre-wrap',
+    whiteSpace: 'pre-wrap' as 'pre-wrap',
   },
   srOnly: {
     position: 'absolute' as 'absolute',
@@ -204,7 +204,7 @@ export default function DecryptedText({
       : {};
 
   return (
-    <motion.span className={parentClassName} ref={containerRef} style={styles.wrapper} {...hoverProps} {...props}>
+    <span className={parentClassName} ref={containerRef} style={styles.wrapper} {...hoverProps} {...props}>
       <span style={styles.srOnly}>{displayText}</span>
 
       <span aria-hidden="true">
@@ -218,6 +218,6 @@ export default function DecryptedText({
           );
         })}
       </span>
-    </motion.span>
+    </span>
   );
 }
