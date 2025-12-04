@@ -271,4 +271,6 @@ function FileSearchIcon(props: React.SVGProps<SVGSVGElement>) {
       <path d="m3 12.5 1.7-1.7a2.8 2.8 0 0 1 4 0l1.6 1.6" />
       <path d="m2 17 3-3" />
       <circle cx="12" cy="16" r="3" />
-    
+    </svg>
+  );
+}
