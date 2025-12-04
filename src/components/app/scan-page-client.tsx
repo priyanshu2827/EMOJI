@@ -180,11 +180,11 @@ export default function ScanPageClient() {
                     </FormItem>
                   )}
                 />
-                {imagePreview && (
-                  <div className="mt-4 relative w-full h-48 rounded-md overflow-hidden border">
+                <div className="mt-4 relative w-full h-48 rounded-md overflow-hidden border">
+                  {imagePreview && (
                     <img src={imagePreview} alt="Image preview" className="w-full h-full object-contain"/>
-                  </div>
-                )}
+                  )}
+                </div>
                 
                 <div className="flex flex-col sm:flex-row gap-2 pt-4">
                   <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
