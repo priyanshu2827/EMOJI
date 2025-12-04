@@ -133,4 +133,8 @@ export default function DashboardPageClient() {
       </div>
       
       <div className="border rounded-lg flex-1 bg-card/80 backdrop-blur-sm">
-        <DashboardTable
+        <DashboardTable logs={filteredLogs} />
+      </div>
+    </div>
+  );
+}
