@@ -2,7 +2,7 @@ import DashboardPageClient from "@/components/app/dashboard-page-client";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Dashboard - StegoShield",
+    title: "Dashboard - INVISIFY",
     description: "View and manage your scan history.",
 };
 

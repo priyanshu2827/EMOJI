@@ -21,7 +21,7 @@ export default function Header() {
         <Link href="/" className="flex items-center gap-2 group">
           <StegoShieldLogo className="h-7 w-7 text-primary group-hover:text-accent transition-colors" />
           <h1 className="text-xl font-bold text-primary group-hover:text-accent transition-colors font-headline">
-            StegoShield
+            INVISIFY
           </h1>
         </Link>
         <nav className="flex items-center gap-2">

@@ -25,7 +25,7 @@ export const useLogStore = create<LogStore>()(
         })),
     }),
     {
-      name: 'stegoshield-logs',
+      name: 'invisify-logs',
       storage: createJSONStorage(() => localStorage),
     }
   )

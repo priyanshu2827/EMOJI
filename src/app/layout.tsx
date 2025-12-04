@@ -5,7 +5,7 @@ import Header from '@/components/app/header';
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
-  title: 'StegoShield',
+  title: 'INVISIFY',
   description: 'A Steganography Detection System',
 };
 

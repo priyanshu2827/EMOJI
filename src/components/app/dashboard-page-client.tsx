@@ -50,7 +50,7 @@ export default function DashboardPageClient() {
       });
       return;
     }
-    exportToCsv(`stegoshield-logs-${new Date().toISOString()}.csv`, filteredLogs);
+    exportToCsv(`invisify-logs-${new Date().toISOString()}.csv`, filteredLogs);
     toast({
       title: 'Export Successful',
       description: 'Your logs have been downloaded as a CSV file.',
