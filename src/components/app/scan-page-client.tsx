@@ -73,7 +73,7 @@ export default function ScanPageClient() {
 
   const handleTextChange = () => {
     if (imagePreview) {
-      form.setValue('imageInput', null);
+      form.setValue('imageInput', undefined);
       setImagePreview(null);
       const fileInput = document.getElementById('imageInput') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
@@ -169,7 +169,7 @@ export default function ScanPageClient() {
                          <Input id="imageInput" type="file" accept="image/*" onChange={(e) => {
                             onChange(e.target.files);
                             handleImageChange(e);
-                          }} {...rest} />
+                          }} {...rest} value={value?.fileName} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -183,7 +183,7 @@ export default function ScanPageClient() {
                 
                 <div className="flex flex-col sm:flex-row gap-2 pt-4">
                   <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
-                    {isLoading ? <Loader2 className="animate-spin" /> : 'Scan Now'}
+                    {isLoading ? <Loader2 className="animate-spin" /> : null}
                     <span className="ml-2">Scan Now</span>
                   </Button>
                   <Button type="button" variant="outline" onClick={handleGenerateSample} disabled={isLoading} className="w-full sm:w-auto">
