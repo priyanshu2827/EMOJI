@@ -4,22 +4,11 @@ import { summarizeFindings } from '@/ai/flows/summarize-findings';
 import { generateSampleText as generateSampleTextFlow } from '@/ai/flows/generate-sample-text';
 import { suggestWhitelist as suggestWhitelistFlow } from '@/ai/flows/suggest-whitelist';
 import type { ContentType, ScanResult, Severity } from './types';
+import * as unicode from './unicode';
+import * as emoji from './emoji';
 
 // Helper to simulate a delay
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-// --- Unicode and Text helpers ---
-const ZERO_WIDTH_CHARS = new Set(['\u200B', '\u200C', '\u200D', '\uFEFF']);
-const EMOJI_REGEX = /\p{Extended_Pictographic}/u;
-
-function contains_zero_width(s: string): boolean {
-    for (const char of s) {
-        if (ZERO_WIDTH_CHARS.has(char)) {
-            return true;
-        }
-    }
-    return false;
-}
 
 // --- Media-type classifier ---
 function classify_input(text: string | null, file_bytes: ArrayBuffer | null): ContentType {
@@ -27,15 +16,14 @@ function classify_input(text: string | null, file_bytes: ArrayBuffer | null): Co
         return "Image";
     }
     const txt = text || "";
-    if (contains_zero_width(txt)) {
+    if (unicode.contains_zero_width(txt)) {
         return "Text";
     }
-    // This is a simplified grapheme cluster regex for JS.
-    const clusters = txt.match(/(\P{Mark}\p{Mark}*)/gu) || [];
+    const clusters = unicode.get_grapheme_clusters(txt);
     if (!clusters.length) {
         return "Text";
     }
-    const emoji_clusters = clusters.filter(c => EMOJI_REGEX.test(c));
+    const emoji_clusters = clusters.filter(c => unicode.EMOJI_REGEX.test(c));
     if (emoji_clusters.length >= Math.max(1, clusters.length / 2)) {
         return "Emoji";
     }
@@ -43,72 +31,21 @@ function classify_input(text: string | null, file_bytes: ArrayBuffer | null): Co
 }
 
 // --- Text detectors ---
-const HOMOGLYPHS: Record<string, string> = {
-    'а': 'a', 'е': 'e', 'о': 'o', 'Ι': 'I', 'Ѕ': 'S', 'і': 'i', 'с': 'c'
-};
-
-function detect_zero_width(text: string) {
-    const found = [...ZERO_WIDTH_CHARS].filter(c => text.includes(c));
-    return { present: !!found.length, chars: found };
-}
-
-function detect_homoglyphs(text: string) {
-    const found: { char: string, looks_like: string }[] = [];
+function detect_text_anomalies(text: string) {
+    const suspicious = [];
     for (const ch of text) {
-        if (ch in HOMOGLYPHS) {
-            found.push({ char: ch, looks_like: HOMOGLYPHS[ch] });
+        const cat = unicode.get_unicode_category(ch);
+        if (cat.startsWith('C') && !unicode.ZERO_WIDTH_CHARS.has(ch)) {
+            suspicious.push({ char: ch, category: cat });
         }
     }
-    return { present: !!found.length, samples: found.slice(0, 5) };
-}
-
-function shannon_entropy(s: string): number {
-    if (!s) {
-        return 0.0;
-    }
-    const freq: Record<string, number> = {};
-    for (const char of s) {
-        freq[char] = (freq[char] || 0) + 1;
-    }
-    const len = s.length;
-    return -Object.values(freq).reduce((acc, count) => {
-        const p = count / len;
-        return acc + p * Math.log2(p);
-    }, 0);
-}
-
-// Unicode category check is complex in JS without heavy libraries. We'll simulate.
-function detect_text_anomalies(text: string) {
-    const suspicious = (text.match(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g) || []).map(ch => ({ char: ch, category: "Cc" }));
-    const entropy = shannon_entropy(text);
+    const entropy = unicode.shannon_entropy(text);
     return { suspicious_unicode: suspicious.slice(0, 20), entropy: entropy };
-}
-
-
-// --- Emoji detectors ---
-function detect_emoji_patterns(text: string) {
-    const clusters = text.match(/(\P{Mark}\p{Mark}*)/gu) || [];
-    const emoji_clusters = clusters.filter(c => EMOJI_REGEX.test(c));
-    let suspicious = false;
-    const reason: string[] = [];
-    if (emoji_clusters.length > 8) {
-        suspicious = true;
-        reason.push('high_emoji_density');
-    }
-    const repeats = text.match(/((\p{Extended_Pictographic})\2{3,})/u);
-    if (repeats) {
-        suspicious = true;
-        reason.push('repeated_grapheme_sequences');
-    }
-    return { suspicious: suspicious, reasons: reason, emoji_clusters_sample: emoji_clusters.slice(0, 10) };
 }
 
 
 // --- Image detectors (LSB heuristics) ---
 function getPixelDataFromImageData(imageData: ImageData): number[] {
-    // In a real scenario, you might use a canvas to draw the image and get pixel data.
-    // For this simulation, we'll create a simplified representation.
-    // This is NOT real pixel data.
     const arr = [];
     for (let i = 0; i < imageData.data.length; i += 4) {
         arr.push(imageData.data[i]); // R
@@ -134,6 +71,7 @@ function lsb_plane_statistics(arr: number[]) {
 }
 
 function lsb_entropy_score(arr: number[]): number {
+    if (arr.length === 0) return 0;
     const p1 = arr.reduce((sum, val) => sum + (val & 1), 0) / arr.length;
     if (p1 === 0 || p1 === 1) {
         return 0.0;
@@ -144,8 +82,6 @@ function lsb_entropy_score(arr: number[]): number {
 
 async function image_detector(image: File) {
     const buffer = await image.arrayBuffer();
-    // We can't use PIL/Numpy, so we'll simulate LSB analysis by looking at file properties.
-    // This is a major simplification.
     const arr = Array.from(new Uint8Array(buffer));
     const stats = lsb_plane_statistics(arr);
     const entropy = lsb_entropy_score(arr);
@@ -170,12 +106,12 @@ function fuse_scores(media_type: ContentType, results: any): number {
     let score = 0.0;
     const max_score = 5.0;
 
-    if (media_type === "Text") {
+    if (media_type === "Text" || media_type === "Emoji") { // Combine text/emoji logic
         if (results.zero_width?.present) score += 2.5;
         if (results.homoglyph?.present) score += 2.0;
         if (results.text_anom?.entropy > 4.0) score += 0.5;
-    } else if (media_type === "Emoji") {
         if (results.emoji_pattern?.suspicious) score += 3.0;
+        if (results.variation_selectors?.suspicious) score += 3.5;
     } else if (media_type === "Image") {
         if (results.image_res?.suspicious) score += 4.0;
     }
@@ -203,23 +139,22 @@ export async function analyzeContent(
   if (!text && !imageBuffer) {
     return { error: 'No content provided to analyze.' };
   }
-
-  const contentType = classify_input(text, imageBuffer);
+  
+  const text_in = unicode.expand_unicode_escapes(text || "");
+  const media_type = classify_input(text_in, imageBuffer);
   
   let results: any = {};
   let rawFindings = {};
 
-  if (contentType === 'Text') {
-      const z = detect_zero_width(text!);
-      const h = detect_homoglyphs(text!);
-      const ta = detect_text_anomalies(text!);
-      results = { zero_width: z, homoglyph: h, text_anom: ta };
+  if (media_type === 'Text' || media_type === 'Emoji') {
+      const z = unicode.detect_zero_width(text_in);
+      const h = unicode.detect_homoglyphs(text_in);
+      const ta = detect_text_anomalies(text_in);
+      const ep = emoji.detect_emoji_patterns(text_in);
+      const vs = unicode.detect_variation_selectors(text_in);
+      results = { zero_width: z, homoglyph: h, text_anom: ta, emoji_pattern: ep, variation_selectors: vs };
       rawFindings = results;
-  } else if (contentType === 'Emoji') {
-      const ep = detect_emoji_patterns(text!);
-      results = { emoji_pattern: ep };
-      rawFindings = results;
-  } else if (contentType === 'Image') {
+  } else if (media_type === 'Image') {
       try {
           const ir = await image_detector(imageFile!);
           results = { image_res: ir };
@@ -230,20 +165,20 @@ export async function analyzeContent(
       }
   }
 
-  const score = fuse_scores(contentType, results);
+  const score = fuse_scores(media_type, results);
   const severity = getSeverity(score);
 
   try {
     const summaryResult = await summarizeFindings({
       findings: JSON.stringify(rawFindings, null, 2),
-      type: contentType,
+      type: media_type,
       severity: severity === 'HIGH-RISK' ? 'HIGH-RISK STEGANOGRAPHY DETECTED' : severity,
     });
     
     return {
       id: crypto.randomUUID(),
       timestamp: new Date().toISOString(),
-      type: contentType,
+      type: media_type,
       severity: severity,
       summary: summaryResult.summary,
       rawFindings: JSON.stringify(rawFindings, null, 2),
@@ -256,12 +191,10 @@ export async function analyzeContent(
   }
 }
 
-
-// These functions remain the same as they call Genkit flows.
+// These functions call Genkit flows and don't need to change.
 export async function generateSampleText(topic: string, hiddenMessage: string) {
     try {
         const result = await generateSampleTextFlow({ topic, hiddenMessage });
-        // The flow now handles encoding, so we just return the result.
         return result;
     } catch(e) {
         console.error(e);
@@ -276,5 +209,44 @@ export async function suggestWhitelist(scanResults: string) {
     } catch(e) {
         console.error(e);
         return { error: 'Failed to get whitelist suggestions.' };
+    }
+}
+
+
+// --- EmojiEncode actions ---
+
+export async function encodeEmoji(
+    prevState: any,
+    formData: FormData
+) : Promise<{encoded: string} | {error: string}> {
+    const message = formData.get('message') as string;
+    const password = formData.get('password') as string;
+
+    if (!message) {
+        return { error: 'Message cannot be empty.' };
+    }
+    try {
+        const encoded = emoji.encode(message, password);
+        return { encoded };
+    } catch (e: any) {
+        return { error: e.message || "Encoding failed." };
+    }
+}
+
+export async function decodeEmoji(
+    prevState: any,
+    formData: FormData
+) : Promise<{decoded: string} | {error: string}> {
+    const encodedMessage = formData.get('encodedMessage') as string;
+    const password = formData.get('password') as string;
+
+    if (!encodedMessage) {
+        return { error: 'Encoded message cannot be empty.' };
+    }
+    try {
+        const decoded = emoji.decode(encodedMessage, password);
+        return { decoded };
+    } catch (e: any) {
+        return { error: e.message || "Decoding failed. Check your input and password." };
     }
 }

@@ -12,6 +12,7 @@ export default function Header() {
   const navItems = [
     { href: '/', label: 'Scan' },
     { href: '/dashboard', label: 'Dashboard' },
+    { href: '/tools', label: 'Tools' },
   ];
 
   return (
