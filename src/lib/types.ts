@@ -9,4 +9,5 @@ export type ScanResult = {
   summary: string;
   rawFindings: string;
   isFalsePositive?: boolean;
+  score?: number;
 };
