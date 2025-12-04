@@ -54,7 +54,7 @@ export default function ScanPageClient() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { textInput: '', imageInput: null },
+    defaultValues: { textInput: '', imageInput: undefined },
   });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,7 +162,7 @@ export default function ScanPageClient() {
                 <FormField
                   control={form.control}
                   name="imageInput"
-                  render={({ field: { onChange, ...rest } }) => (
+                  render={({ field: { onChange, value, ...rest } }) => (
                     <FormItem>
                       <FormLabel>Image Upload</FormLabel>
                       <FormControl>
