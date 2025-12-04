@@ -1,6 +1,6 @@
 // This is a TypeScript port of the logic from https://github.com/mauricelambert/EmojiEncode
 
-const EMOJI_CHARS = "😂😍😭🔥🤔🤯👍🎉🤩🤢🤮😱👋🙏🤝👏👎🤡🤑😎🤓🧐🤖👽👻💀👾🐸🐵🙈🙉🙊🐒🐔🐧🐦🐤🐣🐺🐗🐴🦄🐝🐛🦋🐌🐞🐜🦗🕷🦂🐢🐍🦎🐙🦑🦐🦞🦀🐡🐠🐟🐬🐳🐋🦈🐊🐅🐆🦓🦍🐘🦛🐪🦒🦘🐃🐂🐄🐎🐖🐏🐑🦙🐐🦌🐕🐩🐈🐓🦃🦚🦜🦢🕊🐇🦝🦡🐁🐀🐿🦔🐾🐉🐲🌵🎄🌲🌳🌴🌱🌿☘️🍀🎍🎋🍃🍂🍁🍄🌾💐🌷🌹🥀🌺🌸🌼🌻🌞 Fuller moon symbol🌝";
+const EMOJI_CHARS = "😂😍😭🔥🤔🤯👍🎉🤩🤢🤮😱👋🙏🤝👏👎🤡🤑😎🤓🧐🤖👽👻💀👾🐸🐵🙈🙉🙊🐒🐔🐧🐦🐤🐣🐺🐗🐴🦄🐝🐛🦋🐌🐞🐜🦗🕷🦂🐢🐍🦎🐙🦑🦐🦞🦀🐡🐠🐟🐬🐳🐋🦈🐊🐅🐆🦓🦍🐘🦛🐪🦒𦘘🐃🐂🐄🐎🐖🐏🐑🦙🐐🦌🐕🐩🐈🐓🦃🦚🦜🦢🕊🐇🦝🦡🐁🐀🐿𦔔🐾🐉🐲🌵🎄🌲🌳🌴🌱🌿☘️🍀🎍🎋🍃🍂🍁🍄🌾💐🌷🌹🥀🌺🌸🌼🌻🌞🌝";
 
 function xor(data: Uint8Array, key: string): Uint8Array {
     if (!key) return data;
@@ -22,32 +22,38 @@ export function encode(message: string, key: string = ''): string {
         binaryString += byte.toString(2).padStart(8, '0');
     }
 
+    const emojiMap = [...EMOJI_CHARS];
     let emojiString = '';
     for (let i = 0; i < binaryString.length; i += 7) {
         const chunk = binaryString.substring(i, i + 7).padEnd(7, '0');
         const index = parseInt(chunk, 2);
-        emojiString += EMOJI_CHARS[index % EMOJI_CHARS.length];
+        emojiString += emojiMap[index % emojiMap.length];
     }
     return emojiString;
 }
 
 
 export function decode(emojiString: string, key: string = ''): string {
+    const emojiMap = [...EMOJI_CHARS];
+    const emojiToIndex = new Map(emojiMap.map((emoji, i) => [emoji, i]));
+
     let binaryString = '';
-    for (let i = 0; i < emojiString.length; i++) {
-        const emoji = emojiString[i];
-        const index = EMOJI_CHARS.indexOf(emoji);
-        if (index === -1) {
-             const codePoints = [...emoji];
-             if (codePoints.length > 1) {
-                const firstChar = codePoints[0];
-                const firstCharIndex = EMOJI_CHARS.indexOf(firstChar);
-                 if (firstCharIndex !== -1) {
-                    binaryString += firstCharIndex.toString(2).padStart(7, '0');
-                    i += codePoints.length - 2; 
+    const emojiChars = [...emojiString]; // Split string into an array of grapheme clusters (emojis)
+
+    for (const emoji of emojiChars) {
+        const index = emojiToIndex.get(emoji);
+        if (index === undefined) {
+             // This case handles situations where an emoji might be followed by a variation selector
+             // which is a separate character but part of the same visual glyph.
+             // We just try to decode the base emoji.
+            if (emoji.length > 1) {
+                const baseEmoji = emoji[0];
+                const baseIndex = emojiToIndex.get(baseEmoji);
+                if (baseIndex !== undefined) {
+                    binaryString += baseIndex.toString(2).padStart(7, '0');
                     continue;
-                 }
-             }
+                }
+            }
             throw new Error(`Invalid emoji character detected: ${emoji}`);
         }
         binaryString += index.toString(2).padStart(7, '0');
@@ -69,8 +75,8 @@ export function detect_emoji_patterns(text: string) {
     // This is a simplified check to see if the text consists ONLY of the
     // special emoji characters used for encoding. A real scenario might
     // be more complex.
-    const uniqueChars = new Set(text);
-    const emojiSet = new Set(EMOJI_CHARS);
+    const uniqueChars = new Set([...text]);
+    const emojiSet = new Set([...EMOJI_CHARS]);
     let suspicious = false;
     const reasons: string[] = [];
 
