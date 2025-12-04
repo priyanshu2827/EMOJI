@@ -1,6 +1,6 @@
 'use client';
 
-import { useFormState } from 'react-dom';
+import { useActionState, useEffect } from 'react';
 import { decodeEmoji, encodeEmoji } from '@/lib/actions';
 
 import { Button } from '@/components/ui/button';
@@ -11,12 +11,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
-import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 
 function Encoder() {
-  const [state, formAction] = useFormState(encodeEmoji, null);
+  const [state, formAction] = useActionState(encodeEmoji, null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -65,7 +64,7 @@ function Encoder() {
 }
 
 function Decoder() {
-  const [state, formAction] = useFormState(decodeEmoji, null);
+  const [state, formAction] = useActionState(decodeEmoji, null);
   const { toast } = useToast();
 
    useEffect(() => {
