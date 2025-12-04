@@ -12,7 +12,7 @@ export const StegoShieldLogo = (props: SVGProps<SVGSVGElement>) => (
     {...props}
   >
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    <circle cx="12" cy="12" r="3.5" />
-    <line x1="14.5" y1="14.5" x2="17" y2="17" />
+    <circle cx="12" cy="12" r="3.5" stroke="none" fill="currentColor" />
+    <path d="M10.5 10.5 l3 3 m0 -3 l-3 3" strokeWidth="1.5" stroke="black"/>
   </svg>
 );
