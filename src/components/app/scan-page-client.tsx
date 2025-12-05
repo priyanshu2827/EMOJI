@@ -1,7 +1,7 @@
+
 'use client';
 
 import { useState } from 'react';
-import { useFormState } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -180,16 +180,21 @@ export default function ScanPageClient() {
                     </FormItem>
                   )}
                 />
-                <div className="mt-4 relative w-full h-48 rounded-md overflow-hidden border">
-                  {imagePreview && (
+                <div className="mt-4 relative w-full h-48 rounded-md overflow-hidden border bg-muted/10 flex items-center justify-center">
+                  {imagePreview ? (
                     <img src={imagePreview} alt="Image preview" className="w-full h-full object-contain"/>
+                  ) : (
+                    <div className="text-center text-muted-foreground text-sm">
+                      <FileImage className="mx-auto h-8 w-8 mb-2" />
+                      Image preview will appear here
+                    </div>
                   )}
                 </div>
                 
                 <div className="flex flex-col sm:flex-row gap-2 pt-4">
                   <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
-                    {isLoading ? <Loader2 className="animate-spin" /> : null}
-                    <span className="ml-2">Scan Now</span>
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    {isLoading ? 'Scanning...' : 'Scan Now'}
                   </Button>
                   <Button type="button" variant="outline" onClick={handleGenerateSample} disabled={isLoading} className="w-full sm:w-auto">
                     <Sparkles className="mr-2 h-4 w-4" />
