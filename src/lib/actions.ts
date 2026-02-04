@@ -1,5 +1,6 @@
 'use server';
 
+import { randomUUID } from 'crypto';
 import { summarizeFindings } from '@/ai/flows/summarize-findings';
 import { generateSampleText as generateSampleTextFlow } from '@/ai/flows/generate-sample-text';
 import { suggestWhitelist as suggestWhitelistFlow } from '@/ai/flows/suggest-whitelist';
@@ -130,45 +131,45 @@ export async function analyzeContent(
   prevState: any,
   formData: FormData
 ): Promise<ScanResult | { error: string }> {
-  await sleep(1000); // Simulate processing time
-
-  const text = formData.get('textInput') as string | null;
-  const imageFile = formData.get('imageInput') as File | null;
-  const imageBuffer = imageFile && imageFile.size > 0 ? await imageFile.arrayBuffer() : null;
-
-  if (!text && !imageBuffer) {
-    return { error: 'No content provided to analyze.' };
-  }
-  
-  const text_in = unicode.expand_unicode_escapes(text || "");
-  const media_type = classify_input(text_in, imageBuffer);
-  
-  let results: any = {};
-  let rawFindings = {};
-
-  if (media_type === 'Text' || media_type === 'Emoji') {
-      const z = unicode.detect_zero_width(text_in);
-      const h = unicode.detect_homoglyphs(text_in);
-      const ta = detect_text_anomalies(text_in);
-      const ep = emoji.detect_emoji_patterns(text_in);
-      const vs = unicode.detect_variation_selectors(text_in);
-      results = { zero_width: z, homoglyph: h, text_anom: ta, emoji_pattern: ep, variation_selectors: vs };
-      rawFindings = results;
-  } else if (media_type === 'Image') {
-      try {
-          const ir = await image_detector(imageFile!);
-          results = { image_res: ir };
-          rawFindings = results;
-      } catch (e) {
-          console.error(e);
-          return { error: 'Image processing failed.' };
-      }
-  }
-
-  const score = fuse_scores(media_type, results);
-  const severity = getSeverity(score);
-
   try {
+    await sleep(1000); // Simulate processing time
+
+    const text = formData.get('textInput') as string | null;
+    const imageFile = formData.get('imageInput') as File | null;
+    const imageBuffer = imageFile && imageFile.size > 0 ? await imageFile.arrayBuffer() : null;
+
+    if (!text && !imageBuffer) {
+      return { error: 'No content provided to analyze.' };
+    }
+    
+    const text_in = unicode.expand_unicode_escapes(text || "");
+    const media_type = classify_input(text_in, imageBuffer);
+    
+    let results: any = {};
+    let rawFindings = {};
+
+    if (media_type === 'Text' || media_type === 'Emoji') {
+        const z = unicode.detect_zero_width(text_in);
+        const h = unicode.detect_homoglyphs(text_in);
+        const ta = detect_text_anomalies(text_in);
+        const ep = emoji.detect_emoji_patterns(text_in);
+        const vs = unicode.detect_variation_selectors(text_in);
+        results = { zero_width: z, homoglyph: h, text_anom: ta, emoji_pattern: ep, variation_selectors: vs };
+        rawFindings = results;
+    } else if (media_type === 'Image') {
+        try {
+            const ir = await image_detector(imageFile!);
+            results = { image_res: ir };
+            rawFindings = results;
+        } catch (e) {
+            console.error(e);
+            return { error: 'Image processing failed.' };
+        }
+    }
+
+    const score = fuse_scores(media_type, results);
+    const severity = getSeverity(score);
+
     const summaryResult = await summarizeFindings({
       findings: JSON.stringify(rawFindings, null, 2),
       type: media_type,
@@ -176,7 +177,7 @@ export async function analyzeContent(
     });
     
     return {
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       timestamp: new Date().toISOString(),
       type: media_type,
       severity: severity,
@@ -185,9 +186,9 @@ export async function analyzeContent(
       score: score
     };
 
-  } catch (e) {
-    console.error(e);
-    return { error: 'Failed to get summary from AI. Please try again.' };
+  } catch (e: any) {
+    console.error("An unexpected error occurred in analyzeContent:", e);
+    return { error: e.message || 'An unexpected server error occurred during analysis.' };
   }
 }
 
