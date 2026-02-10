@@ -207,15 +207,35 @@ export default function ScanPageClient() {
                   )}
                 </div>
                 
-                <div className="flex flex-col sm:flex-row gap-2 pt-4">
-                  <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
+                <div className="flex flex-col gap-2 pt-4">
+                  <Button type="submit" disabled={isLoading} className="w-full" data-testid="scan-now-btn">
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     {isLoading ? 'Scanning...' : 'Scan Now'}
                   </Button>
-                  <Button type="button" variant="outline" onClick={handleGenerateSample} disabled={isLoading} className="w-full sm:w-auto">
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Generate Sample
-                  </Button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={handleGenerateSample} 
+                      disabled={isLoading} 
+                      className="w-full"
+                      data-testid="generate-emoji-sample-btn"
+                    >
+                      <Smile className="mr-2 h-4 w-4" />
+                      Emoji Sample
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={handleGenerateZeroWidthSample} 
+                      disabled={isLoading} 
+                      className="w-full"
+                      data-testid="generate-zerowidth-sample-btn"
+                    >
+                      <EyeOff className="mr-2 h-4 w-4" />
+                      Zero-Width Sample
+                    </Button>
+                  </div>
                 </div>
               </form>
             </Form>
