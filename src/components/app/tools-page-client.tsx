@@ -15,7 +15,7 @@ import { Terminal, Smile, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Hyperspeed from './hyperspeed';
 import { hyperspeedPresets } from './hyperspeed-presets';
-import ZeroWidthTools from './zerowidth-tools';
+import ZeroWidthToolsSimple from './zerowidth-tools-simple';
 
 
 function Encoder() {
