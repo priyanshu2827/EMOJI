@@ -155,7 +155,19 @@ export async function analyzeContent(
         const ta = detect_text_anomalies(text_in);
         const ep = emoji.detect_emoji_patterns(text_in);
         const vs = unicode.detect_variation_selectors(text_in);
-        results = { zero_width: z, homoglyph: h, text_anom: ta, emoji_pattern: ep, variation_selectors: vs };
+        
+        // Add unicode sanitizer analysis
+        const unicodeAnalysis = await analyzeUnicodeText(text_in);
+        const sanitizerReport = 'report' in unicodeAnalysis ? unicodeAnalysis.report : null;
+        
+        results = { 
+            zero_width: z, 
+            homoglyph: h, 
+            text_anom: ta, 
+            emoji_pattern: ep, 
+            variation_selectors: vs,
+            unicode_threats: sanitizerReport 
+        };
         rawFindings = results;
     } else if (media_type === 'Image') {
         try {
