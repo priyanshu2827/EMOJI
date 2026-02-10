@@ -7,6 +7,7 @@ import { suggestWhitelist as suggestWhitelistFlow } from '@/ai/flows/suggest-whi
 import type { ContentType, ScanResult, Severity } from './types';
 import * as unicode from './unicode';
 import * as emoji from './emoji';
+import { zeroWidth, Position } from './zerowidth';
 
 // Helper to simulate a delay
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
