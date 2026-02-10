@@ -249,7 +249,7 @@ export default function ScanPageClient() {
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     {isLoading ? 'Scanning...' : 'Scan Now'}
                   </Button>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <Button 
                       type="button" 
                       variant="outline" 
@@ -259,7 +259,7 @@ export default function ScanPageClient() {
                       data-testid="generate-emoji-sample-btn"
                     >
                       <Smile className="mr-2 h-4 w-4" />
-                      Emoji Sample
+                      Emoji
                     </Button>
                     <Button 
                       type="button" 
@@ -270,7 +270,18 @@ export default function ScanPageClient() {
                       data-testid="generate-zerowidth-sample-btn"
                     >
                       <EyeOff className="mr-2 h-4 w-4" />
-                      Zero-Width Sample
+                      Zero-Width
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={handleGenerateUnicodeThreatSample} 
+                      disabled={isLoading} 
+                      className="w-full"
+                      data-testid="generate-unicode-threat-btn"
+                    >
+                      <Shield className="mr-2 h-4 w-4" />
+                      Unicode Threat
                     </Button>
                   </div>
                 </div>
