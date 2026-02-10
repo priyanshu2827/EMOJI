@@ -126,10 +126,30 @@ export default function EmojiEncodeClient() {
         <h1 className="text-3xl font-bold tracking-tight font-headline text-white">Steganography Tools</h1>
         <p className="text-muted-foreground">Encode and decode hidden messages using various techniques.</p>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        <Encoder />
-        <Decoder />
-      </div>
+      
+      <Tabs defaultValue="emoji" className="w-full">
+        <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
+          <TabsTrigger value="emoji" className="flex items-center gap-2">
+            <Smile className="h-4 w-4" />
+            Emoji Tools
+          </TabsTrigger>
+          <TabsTrigger value="zerowidth" className="flex items-center gap-2">
+            <EyeOff className="h-4 w-4" />
+            Zero-Width Tools
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="emoji">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <Encoder />
+            <Decoder />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="zerowidth">
+          <ZeroWidthTools />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
