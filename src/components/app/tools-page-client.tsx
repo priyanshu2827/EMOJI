@@ -10,10 +10,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Terminal, Smile, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Hyperspeed from './hyperspeed';
 import { hyperspeedPresets } from './hyperspeed-presets';
+import ZeroWidthTools from './zerowidth-tools';
 
 
 function Encoder() {
