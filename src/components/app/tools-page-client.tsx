@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import Hyperspeed from './hyperspeed';
 import { hyperspeedPresets } from './hyperspeed-presets';
 import ZeroWidthTools from './zerowidth-tools';
+import UnicodeSanitizerTools from './unicode-sanitizer-tools';
 
 
 function Encoder() {
