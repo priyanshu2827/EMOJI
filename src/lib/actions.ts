@@ -106,14 +106,28 @@ async function image_detector(image: File) {
 // --- Fusion / scoring ---
 function fuse_scores(media_type: ContentType, results: any): number {
     let score = 0.0;
-    const max_score = 5.0;
+    const max_score = 8.0; // Increased to account for new threats
 
-    if (media_type === "Text" || media_type === "Emoji") { // Combine text/emoji logic
+    if (media_type === "Text" || media_type === "Emoji") {
         if (results.zero_width?.present) score += 2.5;
         if (results.homoglyph?.present) score += 2.0;
         if (results.text_anom?.entropy > 4.0) score += 0.5;
         if (results.emoji_pattern?.suspicious) score += 3.0;
         if (results.variation_selectors?.suspicious) score += 3.5;
+        
+        // Add unicode sanitizer scoring
+        if (results.unicode_threats) {
+            const report = results.unicode_threats;
+            if (report.issues) {
+                const promptInjectionIssues = report.issues.filter((i: any) => i.kind === 'prompt_injection');
+                const bidiIssues = report.issues.filter((i: any) => i.detail?.reasons?.includes('bidi_char'));
+                const exoticSpaceIssues = report.issues.filter((i: any) => i.detail?.reasons?.includes('exotic_space'));
+                
+                if (promptInjectionIssues.length > 0) score += 4.0;
+                if (bidiIssues.length > 0) score += 2.5;
+                if (exoticSpaceIssues.length > 0) score += 1.5;
+            }
+        }
     } else if (media_type === "Image") {
         if (results.image_res?.suspicious) score += 4.0;
     }
