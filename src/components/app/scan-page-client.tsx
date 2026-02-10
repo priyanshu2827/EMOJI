@@ -12,6 +12,7 @@ import {
   Sparkles,
   Smile,
   EyeOff,
+  Shield,
 } from 'lucide-react';
 
 import { analyzeContent, generateSampleText, generateZeroWidthSample, generateUnicodeThreatSample } from '@/lib/actions';
