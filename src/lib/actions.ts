@@ -256,8 +256,6 @@ export async function decodeEmoji(
 
 // --- Zero-Width Steganography actions ---
 
-import { zeroWidth, Position } from './zerowidth';
-
 export async function encodeZeroWidth(
     prevState: any,
     formData: FormData
