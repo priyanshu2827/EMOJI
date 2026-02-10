@@ -125,6 +125,28 @@ export default function ScanPageClient() {
     setIsLoading(false);
   }
 
+  const handleGenerateUnicodeThreatSample = async () => {
+    setIsLoading(true);
+    try {
+      console.log('Generating unicode threat sample...');
+      const res = await generateUnicodeThreatSample('combined');
+      console.log('Response:', res);
+      if ('error' in res) {
+        toast({ variant: 'destructive', title: 'Error', description: res.error });
+      } else {
+        form.setValue('textInput', res.sampleText);
+        toast({ 
+          title: 'Unicode Threat Sample Generated', 
+          description: 'Text with prompt injection, BiDi attacks, and exotic spaces has been added!' 
+        });
+      }
+    } catch (error) {
+      console.error('Error generating unicode threat sample:', error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to generate unicode threat sample.' });
+    }
+    setIsLoading(false);
+  }
+
   const handleSubmit = async (data: FormValues) => {
     setIsLoading(true);
     setResult(null);
