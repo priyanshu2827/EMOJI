@@ -14,7 +14,7 @@ import {
   EyeOff,
 } from 'lucide-react';
 
-import { analyzeContent, generateSampleText, generateZeroWidthSample } from '@/lib/actions';
+import { analyzeContent, generateSampleText, generateZeroWidthSample, generateUnicodeThreatSample } from '@/lib/actions';
 import { useLogStore } from '@/lib/store';
 import { type ScanResult } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
