@@ -129,14 +129,18 @@ export default function EmojiEncodeClient() {
       </div>
       
       <Tabs defaultValue="emoji" className="w-full">
-        <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
+        <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-3 mb-8">
           <TabsTrigger value="emoji" className="flex items-center gap-2">
             <Smile className="h-4 w-4" />
             Emoji Tools
           </TabsTrigger>
           <TabsTrigger value="zerowidth" className="flex items-center gap-2">
             <EyeOff className="h-4 w-4" />
-            Zero-Width Tools
+            Zero-Width
+          </TabsTrigger>
+          <TabsTrigger value="unicode" className="flex items-center gap-2">
+            <Terminal className="h-4 w-4" />
+            Unicode Sanitizer
           </TabsTrigger>
         </TabsList>
         
@@ -149,6 +153,10 @@ export default function EmojiEncodeClient() {
         
         <TabsContent value="zerowidth">
           <ZeroWidthTools />
+        </TabsContent>
+        
+        <TabsContent value="unicode">
+          <UnicodeSanitizerTools />
         </TabsContent>
       </Tabs>
     </div>
