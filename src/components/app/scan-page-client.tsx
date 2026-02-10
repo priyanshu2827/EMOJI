@@ -85,27 +85,41 @@ export default function ScanPageClient() {
   
   const handleGenerateSample = async () => {
     setIsLoading(true);
-    const res = await generateSampleText('cybersecurity', 'secret message');
-    if ('error' in res) {
-      toast({ variant: 'destructive', title: 'Error', description: res.error });
-    } else {
-      form.setValue('textInput', res.sampleText);
-      toast({ title: 'Sample Generated', description: 'Sample text with a hidden message has been added to the text area.' });
+    try {
+      console.log('Generating emoji sample...');
+      const res = await generateSampleText('cybersecurity', 'secret message');
+      console.log('Response:', res);
+      if ('error' in res) {
+        toast({ variant: 'destructive', title: 'Error', description: res.error });
+      } else {
+        form.setValue('textInput', res.sampleText);
+        toast({ title: 'Sample Generated', description: 'Sample text with a hidden message has been added to the text area.' });
+      }
+    } catch (error) {
+      console.error('Error generating sample:', error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to generate sample text.' });
     }
     setIsLoading(false);
   }
   
   const handleGenerateZeroWidthSample = async () => {
     setIsLoading(true);
-    const res = await generateZeroWidthSample('technology', 'This is a secret message hidden with zero-width characters!');
-    if ('error' in res) {
-      toast({ variant: 'destructive', title: 'Error', description: res.error });
-    } else {
-      form.setValue('textInput', res.sampleText);
-      toast({ 
-        title: 'Zero-Width Sample Generated', 
-        description: 'Text with hidden zero-width steganography has been added. Try scanning it!' 
-      });
+    try {
+      console.log('Generating zero-width sample...');
+      const res = await generateZeroWidthSample('technology', 'This is a secret message hidden with zero-width characters!');
+      console.log('Response:', res);
+      if ('error' in res) {
+        toast({ variant: 'destructive', title: 'Error', description: res.error });
+      } else {
+        form.setValue('textInput', res.sampleText);
+        toast({ 
+          title: 'Zero-Width Sample Generated', 
+          description: 'Text with hidden zero-width steganography has been added. Try scanning it!' 
+        });
+      }
+    } catch (error) {
+      console.error('Error generating zero-width sample:', error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to generate zero-width sample.' });
     }
     setIsLoading(false);
   }
