@@ -11,6 +11,7 @@ import {
   Loader2,
   Sparkles,
   Smile,
+  EyeOff,
 } from 'lucide-react';
 
 import { analyzeContent, generateSampleText, generateZeroWidthSample } from '@/lib/actions';
