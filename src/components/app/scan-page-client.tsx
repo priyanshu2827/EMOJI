@@ -94,6 +94,21 @@ export default function ScanPageClient() {
     }
     setIsLoading(false);
   }
+  
+  const handleGenerateZeroWidthSample = async () => {
+    setIsLoading(true);
+    const res = await generateZeroWidthSample('technology', 'This is a secret message hidden with zero-width characters!');
+    if ('error' in res) {
+      toast({ variant: 'destructive', title: 'Error', description: res.error });
+    } else {
+      form.setValue('textInput', res.sampleText);
+      toast({ 
+        title: 'Zero-Width Sample Generated', 
+        description: 'Text with hidden zero-width steganography has been added. Try scanning it!' 
+      });
+    }
+    setIsLoading(false);
+  }
 
   const handleSubmit = async (data: FormValues) => {
     setIsLoading(true);
