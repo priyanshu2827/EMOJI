@@ -251,3 +251,90 @@ export async function decodeEmoji(
         return { error: e.message || "Decoding failed. Check your input and password." };
     }
 }
+
+
+// --- Zero-Width Steganography actions ---
+
+import { zeroWidth, Position } from './zerowidth';
+
+export async function encodeZeroWidth(
+    prevState: any,
+    formData: FormData
+) : Promise<{encoded: string} | {error: string}> {
+    const sourceText = formData.get('sourceText') as string;
+    const secretMessage = formData.get('secretMessage') as string;
+    const position = formData.get('position') as Position;
+    const k = parseInt(formData.get('k') as string) || 1;
+
+    if (!sourceText) {
+        return { error: 'Source text cannot be empty.' };
+    }
+    if (!secretMessage) {
+        return { error: 'Secret message cannot be empty.' };
+    }
+    try {
+        const encoded = zeroWidth.zeroEncode(sourceText, secretMessage, position, k);
+        return { encoded };
+    } catch (e: any) {
+        return { error: e.message || "Encoding failed." };
+    }
+}
+
+export async function decodeZeroWidth(
+    prevState: any,
+    formData: FormData
+) : Promise<{decoded: string} | {error: string}> {
+    const encodedText = formData.get('encodedText') as string;
+
+    if (!encodedText) {
+        return { error: 'Encoded text cannot be empty.' };
+    }
+    try {
+        const decoded = zeroWidth.zeroDecode(encodedText);
+        return { decoded };
+    } catch (e: any) {
+        return { error: e.message || "Decoding failed." };
+    }
+}
+
+export async function cleanZeroWidth(
+    prevState: any,
+    formData: FormData
+) : Promise<{cleaned: string; removedCount?: number} | {error: string}> {
+    const textToClean = formData.get('textToClean') as string;
+
+    if (!textToClean) {
+        return { error: 'Text to clean cannot be empty.' };
+    }
+    try {
+        const cleaned = zeroWidth.cleanString(textToClean);
+        const removedCount = textToClean.length - cleaned.length;
+        return { cleaned, removedCount };
+    } catch (e: any) {
+        return { error: e.message || "Cleaning failed." };
+    }
+}
+
+export async function generateZeroWidthSample(topic: string, secretMessage: string) {
+    try {
+        // Generate sample text using AI
+        const result = await generateSampleTextFlow({ topic, hiddenMessage: secretMessage });
+        
+        if ('error' in result) {
+            return result;
+        }
+        
+        // Encode the secret message into the generated text using zero-width characters
+        const encoded = zeroWidth.zeroEncode(
+            result.sampleText,
+            secretMessage,
+            Position.BOTTOM,
+            1
+        );
+        
+        return { sampleText: encoded };
+    } catch(e) {
+        console.error(e);
+        return { error: 'Failed to generate zero-width sample text.' };
+    }
+}
