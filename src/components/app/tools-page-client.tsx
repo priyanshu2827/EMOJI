@@ -1,8 +1,7 @@
 'use client';
 
-import { useActionState, useEffect } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { decodeEmoji, encodeEmoji } from '@/lib/actions';
-import dynamic from 'next/dynamic';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,12 +15,7 @@ import { Terminal, Smile, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Hyperspeed from './hyperspeed';
 import { hyperspeedPresets } from './hyperspeed-presets';
-
-// Dynamic import with no SSR for ZeroWidthTools
-const ZeroWidthTools = dynamic(() => import('./zerowidth-tools'), {
-  ssr: false,
-  loading: () => <div className="p-4 text-center">Loading Zero-Width Tools...</div>
-});
+import ZeroWidthTools from './zerowidth-tools';
 
 
 function Encoder() {
