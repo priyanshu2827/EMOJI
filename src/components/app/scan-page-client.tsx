@@ -188,13 +188,13 @@ export default function ScanPageClient() {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6" suppressHydrationWarning>
                 <FormField
                   control={form.control}
                   name="textInput"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Text Input</FormLabel>
+                    <FormItem suppressHydrationWarning>
+                      <FormLabel suppressHydrationWarning>Text Input</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Paste text, code, or emojis here..."
@@ -204,6 +204,7 @@ export default function ScanPageClient() {
                             field.onChange(e);
                             handleTextChange();
                           }}
+                          suppressHydrationWarning
                         />
                       </FormControl>
                       <FormMessage />
