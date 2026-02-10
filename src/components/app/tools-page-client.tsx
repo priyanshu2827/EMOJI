@@ -147,7 +147,7 @@ export default function EmojiEncodeClient() {
         </TabsContent>
         
         <TabsContent value="zerowidth">
-          <ZeroWidthToolsSimple />
+          <ZeroWidthTools />
         </TabsContent>
       </Tabs>
     </div>
