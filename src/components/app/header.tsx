@@ -13,6 +13,7 @@ export default function Header() {
     { href: '/scan', label: 'Scan' },
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/tools', label: 'Tools' },
+    { href: '/detection-methods', label: 'Detection Methods' },
   ];
 
   return (
