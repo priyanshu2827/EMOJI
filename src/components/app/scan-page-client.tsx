@@ -222,13 +222,13 @@ export default function ScanPageClient() {
                   control={form.control}
                   name="imageInput"
                   render={({ field: { onChange, value, ...rest } }) => (
-                    <FormItem>
-                      <FormLabel>Image Upload</FormLabel>
+                    <FormItem suppressHydrationWarning>
+                      <FormLabel suppressHydrationWarning>Image Upload</FormLabel>
                       <FormControl>
                          <Input id="imageInput" type="file" accept="image/*" onChange={(e) => {
                             onChange(e.target.files);
                             handleImageChange(e);
-                          }} {...rest} value={value?.fileName} />
+                          }} {...rest} value={value?.fileName} suppressHydrationWarning />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
