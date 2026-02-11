@@ -7,7 +7,11 @@ import { suggestWhitelist as suggestWhitelistFlow } from '@/ai/flows/suggest-whi
 import type { ContentType, ScanResult, Severity } from './types';
 import * as unicode from './unicode';
 import * as emoji from './emoji';
-import { zeroWidth, Position } from './zerowidth';
+import * as codeDetector from './code-detector';
+import * as spellingDetector from './spelling-detector';
+import * as stegDetector from './steg-detector';
+import * as stegoveritasDetector from './stegoveritas-detector';
+import { zeroWidth, Position, SteganographyMode } from './zerowidth';
 
 // Helper to simulate a delay
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -87,9 +91,14 @@ async function image_detector(image: File) {
     const arr = Array.from(new Uint8Array(buffer));
     const stats = lsb_plane_statistics(arr);
     const entropy = lsb_entropy_score(arr);
-    
-    let suspicious = false;
-    const reasons: string[] = [];
+
+    // Advanced steganalysis from StegExpose
+    const stegoAnalysis = stegDetector.analyzeStego(arr);
+    const veritasAnalysis = stegoveritasDetector.analyzeStegoVeritas(buffer, arr, image.type);
+
+    let suspicious = stegoAnalysis.suspicious || veritasAnalysis.suspicious;
+    const reasons: string[] = [...stegoAnalysis.reasons, ...veritasAnalysis.reasons];
+
     if (stats.deviation_from_0_5 < 0.03 && entropy > 0.98) {
         suspicious = true;
         reasons.push('lsb_randomness_high');
@@ -99,22 +108,46 @@ async function image_detector(image: File) {
         reasons.push('very_large_image_near_uniform_lsb');
     }
 
-    return { suspicious, reasons, lsb_stats: stats, lsb_entropy: entropy };
+    return {
+        suspicious,
+        reasons,
+        lsb_stats: stats,
+        lsb_entropy: entropy,
+        stego_analysis: stegoAnalysis,
+        stegoveritas_analysis: veritasAnalysis
+    };
 }
 
 
 // --- Fusion / scoring ---
 function fuse_scores(media_type: ContentType, results: any): number {
     let score = 0.0;
-    const max_score = 8.0; // Increased to account for new threats
+    const max_score = 17.5; // Increased for SafeText, ZWSP-Tool, StegExpose, and stegoVeritas features
 
     if (media_type === "Text" || media_type === "Emoji") {
         if (results.zero_width?.present) score += 2.5;
-        if (results.homoglyph?.present) score += 2.0;
+
+        // ZWSP-Tool detection
+        if (results.zwsp_detect?.tool_pattern) {
+            score += 3.0;
+        }
+
+        // Homoglyphs detailed scoring
+        if (results.homoglyph?.present) {
+            score += 2.0; // Base presence
+            if (results.homoglyph.detailed) {
+                // Additional categories indicate more sophisticated attack
+                const categoryCount = results.homoglyph.detailed.categories.length;
+                if (categoryCount > 1) {
+                    score += Math.min(1.5, (categoryCount - 1) * 0.5);
+                }
+            }
+        }
+
         if (results.text_anom?.entropy > 4.0) score += 0.5;
         if (results.emoji_pattern?.suspicious) score += 3.0;
         if (results.variation_selectors?.suspicious) score += 3.5;
-        
+
         // Add unicode sanitizer scoring
         if (results.unicode_threats) {
             const report = results.unicode_threats;
@@ -122,101 +155,186 @@ function fuse_scores(media_type: ContentType, results: any): number {
                 const promptInjectionIssues = report.issues.filter((i: any) => i.kind === 'prompt_injection');
                 const bidiIssues = report.issues.filter((i: any) => i.detail?.reasons?.includes('bidi_char'));
                 const exoticSpaceIssues = report.issues.filter((i: any) => i.detail?.reasons?.includes('exotic_space'));
-                
+
                 if (promptInjectionIssues.length > 0) score += 4.0;
                 if (bidiIssues.length > 0) score += 2.5;
                 if (exoticSpaceIssues.length > 0) score += 1.5;
             }
         }
+
+        // Add enhanced emoji threat scoring
+        if (results.emoji_threats) {
+            const emojiReport = results.emoji_threats;
+            if (emojiReport.threats.tokenExplosion) score += 4.0;
+            if (emojiReport.threats.graphemeManipulation) score += 3.5;
+            if (emojiReport.threats.variationSelectorAbuse) score += 3.0;
+            if (emojiReport.threats.encodingPattern?.detected) score += 4.0;
+        }
+
+        // Add code analysis scoring
+        if (results.code_analysis) {
+            const codeReport = results.code_analysis;
+            if (codeReport.smartQuotes.detected) {
+                score += Math.min(1.5, codeReport.smartQuotes.count * 0.3);
+            }
+            if (codeReport.composition.suspicious) {
+                score += 2.5;
+            }
+        }
+
+        // Add spelling variation scoring (SafeText)
+        if (results.spelling_variations?.detected) {
+            // Mixed variations or high regional confidence can be a fingerprinting signal
+            if (results.spelling_variations.likelyRegion === 'MIXED') {
+                score += 2.0;
+            } else if (results.spelling_variations.confidence > 75) {
+                score += 1.0;
+            }
+        }
     } else if (media_type === "Image") {
-        if (results.image_res?.suspicious) score += 4.0;
+        const stats = results.lsb_stats;
+        const entropy = results.lsb_entropy;
+        if (stats?.deviation_from_0_5 < 0.03 && entropy > 0.98) score += 3.0;
+        if (stats?.deviation_from_0_5 < 0.01 && stats?.total_bits > 5_000_000) score += 2.0;
+
+        // StegExpose scoring
+        if (results.stego_analysis) {
+            const stego = results.stego_analysis;
+            // Chi-Square probability adds up to 3 points
+            if (stego.chiSquareProbability > 0.6) {
+                score += Math.min(3.0, (stego.chiSquareProbability - 0.6) * 7.5);
+            }
+            // SPA embedding rate adds up to 4 points
+            if (stego.spaEmbeddingRate > 0.05) {
+                score += Math.min(4.0, stego.spaEmbeddingRate * 8.0);
+            }
+        }
+
+        // stegoVeritas scoring
+        if (results.stegoveritas_analysis) {
+            const veritas = results.stegoveritas_analysis;
+            // Trailing data is a very strong indicator of non-LSB stego
+            if (veritas.trailingDataDetected) {
+                score += 5.0;
+            }
+            // Channel inconsistency suggests targeted LSB attacks
+            if (veritas.channelInconsistency?.detected) {
+                score += 2.5;
+            }
+            // Metadata issues
+            if (veritas.metadataAnomalies?.length > 0) {
+                score += 2.0;
+            }
+        }
     }
 
     return Math.min(100, Math.floor((score / max_score) * 100));
 }
 
 function getSeverity(score: number): Severity {
-    if (score >= 70) return 'HIGH-RISK';
-    if (score >= 40) return 'SUSPICIOUS';
+    // Refined thresholds for more accurate classification
+    if (score >= 60) return 'HIGH-RISK';  // Was 70
+    if (score >= 30) return 'SUSPICIOUS'; // Was 40
     return 'CLEAN';
 }
 
 
 export async function analyzeContent(
-  prevState: any,
-  formData: FormData
+    prevState: any,
+    formData: FormData
 ): Promise<ScanResult | { error: string }> {
-  try {
-    await sleep(1000); // Simulate processing time
+    try {
+        await sleep(1000); // Simulate processing time
 
-    const text = formData.get('textInput') as string | null;
-    const imageFile = formData.get('imageInput') as File | null;
-    const imageBuffer = imageFile && imageFile.size > 0 ? await imageFile.arrayBuffer() : null;
+        const text = formData.get('textInput') as string | null;
+        const imageFile = formData.get('imageInput') as File | null;
+        const imageBuffer = imageFile && imageFile.size > 0 ? await imageFile.arrayBuffer() : null;
 
-    if (!text && !imageBuffer) {
-      return { error: 'No content provided to analyze.' };
-    }
-    
-    const text_in = unicode.expand_unicode_escapes(text || "");
-    const media_type = classify_input(text_in, imageBuffer);
-    
-    let results: any = {};
-    let rawFindings = {};
-
-    if (media_type === 'Text' || media_type === 'Emoji') {
-        const z = unicode.detect_zero_width(text_in);
-        const h = unicode.detect_homoglyphs(text_in);
-        const ta = detect_text_anomalies(text_in);
-        const ep = emoji.detect_emoji_patterns(text_in);
-        const vs = unicode.detect_variation_selectors(text_in);
-        
-        // Add unicode sanitizer analysis
-        const unicodeAnalysis = await analyzeUnicodeText(text_in);
-        const sanitizerReport = 'report' in unicodeAnalysis ? unicodeAnalysis.report : null;
-        
-        results = { 
-            zero_width: z, 
-            homoglyph: h, 
-            text_anom: ta, 
-            emoji_pattern: ep, 
-            variation_selectors: vs,
-            unicode_threats: sanitizerReport 
-        };
-        rawFindings = results;
-    } else if (media_type === 'Image') {
-        try {
-            const ir = await image_detector(imageFile!);
-            results = { image_res: ir };
-            rawFindings = results;
-        } catch (e) {
-            console.error(e);
-            return { error: 'Image processing failed.' };
+        if (!text && !imageBuffer) {
+            return { error: 'No content provided to analyze.' };
         }
+
+        const text_in = unicode.expand_unicode_escapes(text || "");
+        const media_type = classify_input(text_in, imageBuffer);
+
+        let results: any = {};
+        let rawFindings = {};
+
+        if (media_type === 'Text' || media_type === 'Emoji') {
+            const z = unicode.detect_zero_width(text_in);
+            const h = unicode.detect_homoglyphs(text_in, true); // Detailed report enabled (SafeText)
+            const ta = detect_text_anomalies(text_in);
+            const ep = emoji.detect_emoji_patterns(text_in);
+            const vs = unicode.detect_variation_selectors(text_in);
+
+            // Add unicode sanitizer analysis
+            const unicodeAnalysis = await analyzeUnicodeText(text_in);
+            const sanitizerReport = 'report' in unicodeAnalysis ? unicodeAnalysis.report : null;
+
+            // Add enhanced emoji security scan
+            const emojiThreatReport = emoji.enhancedEmojiSecurityScan(text_in);
+
+            // Add code analysis (smart quotes and character composition)
+            const codeAnalysis = codeDetector.analyzeCode(text_in);
+
+            // Add spelling variation analysis (SafeText)
+            const spellingVariations = spellingDetector.detectSpellingVariations(text_in);
+
+            // ZWSP-Tool pattern detection
+            const zwspChars = unicode.ZWSP_TOOL_CHARS;
+            const longZwspRegex = new RegExp(`[${zwspChars.join('')}]{10,}`, 'g');
+            const zwspToolMatches = text_in.match(longZwspRegex);
+
+            results = {
+                zero_width: z,
+                homoglyph: h,
+                text_anom: ta,
+                emoji_pattern: ep,
+                variation_selectors: vs,
+                unicode_threats: sanitizerReport,
+                emoji_threats: emojiThreatReport,
+                code_analysis: codeAnalysis,
+                spelling_variations: spellingVariations,
+                zwsp_detect: {
+                    tool_pattern: !!zwspToolMatches,
+                    match_count: zwspToolMatches?.length || 0
+                }
+            };
+            rawFindings = results;
+        } else if (media_type === 'Image') {
+            try {
+                const ir = await image_detector(imageFile!);
+                results = { image_res: ir };
+                rawFindings = results;
+            } catch (e) {
+                console.error(e);
+                return { error: 'Image processing failed.' };
+            }
+        }
+
+        const score = fuse_scores(media_type, results);
+        const severity = getSeverity(score);
+
+        const summaryResult = await summarizeFindings({
+            findings: JSON.stringify(rawFindings, null, 2),
+            type: media_type,
+            severity: severity === 'HIGH-RISK' ? 'HIGH-RISK STEGANOGRAPHY DETECTED' : severity,
+        });
+
+        return {
+            id: randomUUID(),
+            timestamp: new Date().toISOString(),
+            type: media_type,
+            severity: severity,
+            summary: summaryResult.summary,
+            rawFindings: JSON.stringify(rawFindings, null, 2),
+            score: score
+        };
+
+    } catch (e: any) {
+        console.error("An unexpected error occurred in analyzeContent:", e);
+        return { error: e.message || 'An unexpected server error occurred during analysis.' };
     }
-
-    const score = fuse_scores(media_type, results);
-    const severity = getSeverity(score);
-
-    const summaryResult = await summarizeFindings({
-      findings: JSON.stringify(rawFindings, null, 2),
-      type: media_type,
-      severity: severity === 'HIGH-RISK' ? 'HIGH-RISK STEGANOGRAPHY DETECTED' : severity,
-    });
-    
-    return {
-      id: randomUUID(),
-      timestamp: new Date().toISOString(),
-      type: media_type,
-      severity: severity,
-      summary: summaryResult.summary,
-      rawFindings: JSON.stringify(rawFindings, null, 2),
-      score: score
-    };
-
-  } catch (e: any) {
-    console.error("An unexpected error occurred in analyzeContent:", e);
-    return { error: e.message || 'An unexpected server error occurred during analysis.' };
-  }
 }
 
 // These functions call Genkit flows and don't need to change.
@@ -224,7 +342,7 @@ export async function generateSampleText(topic: string, hiddenMessage: string) {
     try {
         const result = await generateSampleTextFlow({ topic, hiddenMessage });
         return result;
-    } catch(e) {
+    } catch (e) {
         console.error(e);
         return { error: 'Failed to generate sample text.' };
     }
@@ -234,7 +352,7 @@ export async function suggestWhitelist(scanResults: string) {
     try {
         const result = await suggestWhitelistFlow({ scanResults, numSuggestions: 3 });
         return result;
-    } catch(e) {
+    } catch (e) {
         console.error(e);
         return { error: 'Failed to get whitelist suggestions.' };
     }
@@ -246,7 +364,7 @@ export async function suggestWhitelist(scanResults: string) {
 export async function encodeEmoji(
     prevState: any,
     formData: FormData
-) : Promise<{encoded: string} | {error: string}> {
+): Promise<{ encoded: string } | { error: string }> {
     const message = formData.get('message') as string;
     const password = formData.get('password') as string;
 
@@ -264,7 +382,7 @@ export async function encodeEmoji(
 export async function decodeEmoji(
     prevState: any,
     formData: FormData
-) : Promise<{decoded: string} | {error: string}> {
+): Promise<{ decoded: string } | { error: string }> {
     const encodedMessage = formData.get('encodedMessage') as string;
     const password = formData.get('password') as string;
 
@@ -285,11 +403,12 @@ export async function decodeEmoji(
 export async function encodeZeroWidth(
     prevState: any,
     formData: FormData
-) : Promise<{encoded: string} | {error: string}> {
+): Promise<{ encoded: string } | { error: string }> {
     const sourceText = formData.get('sourceText') as string;
     const secretMessage = formData.get('secretMessage') as string;
     const position = formData.get('position') as Position;
     const k = parseInt(formData.get('k') as string) || 1;
+    const mode = (formData.get('mode') as SteganographyMode) || SteganographyMode.BINARY;
 
     if (!sourceText) {
         return { error: 'Source text cannot be empty.' };
@@ -298,7 +417,7 @@ export async function encodeZeroWidth(
         return { error: 'Secret message cannot be empty.' };
     }
     try {
-        const encoded = zeroWidth.zeroEncode(sourceText, secretMessage, position, k);
+        const encoded = zeroWidth.zeroEncode(sourceText, secretMessage, position, k, mode);
         return { encoded };
     } catch (e: any) {
         return { error: e.message || "Encoding failed." };
@@ -308,14 +427,15 @@ export async function encodeZeroWidth(
 export async function decodeZeroWidth(
     prevState: any,
     formData: FormData
-) : Promise<{decoded: string} | {error: string}> {
+): Promise<{ decoded: string } | { error: string }> {
     const encodedText = formData.get('encodedText') as string;
+    const mode = (formData.get('mode') as SteganographyMode) || SteganographyMode.BINARY;
 
     if (!encodedText) {
         return { error: 'Encoded text cannot be empty.' };
     }
     try {
-        const decoded = zeroWidth.zeroDecode(encodedText);
+        const decoded = zeroWidth.zeroDecode(encodedText, mode);
         return { decoded };
     } catch (e: any) {
         return { error: e.message || "Decoding failed." };
@@ -325,7 +445,7 @@ export async function decodeZeroWidth(
 export async function cleanZeroWidth(
     prevState: any,
     formData: FormData
-) : Promise<{cleaned: string; removedCount?: number} | {error: string}> {
+): Promise<{ cleaned: string; removedCount?: number } | { error: string }> {
     const textToClean = formData.get('textToClean') as string;
 
     if (!textToClean) {
@@ -344,11 +464,11 @@ export async function generateZeroWidthSample(topic: string, secretMessage: stri
     try {
         // Generate sample text using AI
         const result = await generateSampleTextFlow({ topic, hiddenMessage: secretMessage });
-        
+
         if ('error' in result) {
             return result;
         }
-        
+
         // Encode the secret message into the generated text using zero-width characters
         const encoded = zeroWidth.zeroEncode(
             result.sampleText,
@@ -356,9 +476,9 @@ export async function generateZeroWidthSample(topic: string, secretMessage: stri
             Position.BOTTOM,
             1
         );
-        
+
         return { sampleText: encoded };
-    } catch(e) {
+    } catch (e) {
         console.error(e);
         return { error: 'Failed to generate zero-width sample text.' };
     }
@@ -372,7 +492,7 @@ import { sanitizeText, analyzeText, type SecurityConfig, type SanitizeReport } f
 export async function sanitizeUnicodeText(
     prevState: any,
     formData: FormData
-) : Promise<{cleaned: string; report: SanitizeReport} | {error: string}> {
+): Promise<{ cleaned: string; report: SanitizeReport } | { error: string }> {
     const text = formData.get('text') as string;
     const allowEmoji = formData.get('allowEmoji') === 'true';
     const detectPromptInjection = formData.get('detectPromptInjection') !== 'false';
@@ -382,7 +502,7 @@ export async function sanitizeUnicodeText(
     if (!text) {
         return { error: 'Text cannot be empty.' };
     }
-    
+
     try {
         const config: SecurityConfig = {
             allowEmoji,
@@ -392,7 +512,7 @@ export async function sanitizeUnicodeText(
             maxRepeatedChar: 4,
             maxTokensPerCluster: 3,
         };
-        
+
         const result = sanitizeText(text, config);
         return result;
     } catch (e: any) {
@@ -413,7 +533,7 @@ export async function analyzeUnicodeText(text: string) {
 export async function generateUnicodeThreatSample(type: string) {
     try {
         let sampleText = '';
-        
+
         switch (type) {
             case 'zero-width':
                 sampleText = 'This text contains hidden\u200Bzero\u200Cwidth\u200Dcharacters.';
@@ -436,9 +556,9 @@ export async function generateUnicodeThreatSample(type: string) {
             default:
                 sampleText = 'Sample text for testing.';
         }
-        
+
         return { sampleText };
-    } catch(e) {
+    } catch (e) {
         console.error(e);
         return { error: 'Failed to generate sample.' };
     }

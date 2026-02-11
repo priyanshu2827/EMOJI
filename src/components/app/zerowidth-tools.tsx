@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState } from 'react';
 import { encodeZeroWidth, decodeZeroWidth, cleanZeroWidth } from '@/lib/actions';
-import { Position } from '@/lib/zerowidth';
+import { Position, SteganographyMode } from '@/lib/zerowidth';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 function Encoder() {
   const [state, formAction] = useActionState(encodeZeroWidth, null);
   const [position, setPosition] = useState<Position>(Position.BOTTOM);
+  const [mode, setMode] = useState<SteganographyMode>(SteganographyMode.BINARY);
   const [kValue, setKValue] = useState('1');
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
@@ -51,6 +52,7 @@ function Encoder() {
       <CardContent>
         <form action={formAction} className="space-y-4">
           <input type="hidden" name="position" value={position} />
+          <input type="hidden" name="mode" value={mode} />
           <input type="hidden" name="k" value={kValue} />
 
           <div className="space-y-2">
@@ -108,6 +110,24 @@ function Encoder() {
                 />
               </div>
             )}
+
+            <div className="space-y-2">
+              <Label htmlFor="mode-select">Steganography Mode</Label>
+              <Select value={mode} onValueChange={(v) => setMode(v as SteganographyMode)}>
+                <SelectTrigger id="mode-select">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={SteganographyMode.BINARY}>Original (Binary)</SelectItem>
+                  <SelectItem value={SteganographyMode.ZWSP_TOOL}>ZWSP-Tool (Base-7)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                {mode === SteganographyMode.ZWSP_TOOL
+                  ? "Uses 7 characters for better concealment in some environments."
+                  : "Standard binary encoding using 2 characters."}
+              </p>
+            </div>
           </div>
 
           <Button type="submit" className="w-full">Encode Message</Button>
@@ -146,6 +166,7 @@ function Encoder() {
 
 function Decoder() {
   const [state, formAction] = useActionState(decodeZeroWidth, null);
+  const [mode, setMode] = useState<SteganographyMode>(SteganographyMode.BINARY);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -178,6 +199,21 @@ function Decoder() {
               required
             />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="mode-select-decoder">Steganography Mode</Label>
+            <Select value={mode} onValueChange={(v) => setMode(v as SteganographyMode)}>
+              <SelectTrigger id="mode-select-decoder">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={SteganographyMode.BINARY}>Original (Binary)</SelectItem>
+                <SelectItem value={SteganographyMode.ZWSP_TOOL}>ZWSP-Tool (Base-7)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <input type="hidden" name="mode" value={mode} />
 
           <Button type="submit" className="w-full">Decode Message</Button>
         </form>
