@@ -27,12 +27,12 @@ export default function RootLayout({
       </head>
       <body
         className={cn(
-          'font-body antialiased h-full flex flex-col bg-black',
+          'font-body antialiased h-full flex flex-col bg-black overflow-x-hidden',
           process.env.NODE_ENV === 'development' ? 'debug-screens' : ''
         )}
       >
         <Header />
-        <main className="flex-1 flex flex-col">{children}</main>
+        <main className="flex-1 flex flex-col min-h-[calc(100vh-4rem)]">{children}</main>
         <Toaster />
       </body>
     </html>

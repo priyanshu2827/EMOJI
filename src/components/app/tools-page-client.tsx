@@ -118,9 +118,26 @@ function Decoder() {
 }
 
 export default function EmojiEncodeClient() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="container mx-auto p-4 md:p-8 relative z-10 min-h-[60vh]">
+        <div className="mb-8 animate-pulse">
+          <div className="h-10 w-64 bg-muted rounded mb-2"></div>
+          <div className="h-4 w-96 bg-muted rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-4 md:p-8 relative z-10">
-      <div className="absolute inset-0 -z-10">
+      <div className="absolute inset-0 -z-10 overflow-hidden">
         <Hyperspeed effectOptions={hyperspeedPresets.one} />
       </div>
       <div className="mb-8">

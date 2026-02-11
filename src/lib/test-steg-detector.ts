@@ -1,5 +1,3 @@
-import { stegDetector } from './steg-detector' // Wait, I didn't export it like that... let's check
-
 import * as steg from './steg-detector';
 
 function generateCleanPixels(size: number): number[] {

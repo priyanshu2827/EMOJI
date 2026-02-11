@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -14,9 +14,11 @@ import {
   EyeOff,
   Shield,
   Upload,
+  Code,
+  Type,
 } from 'lucide-react';
 
-import { analyzeContent, generateSampleText, generateZeroWidthSample, generateUnicodeThreatSample } from '@/lib/actions';
+import { analyzeContent, generateSampleText, generateZeroWidthSample, generateUnicodeThreatSample, generateCodeSample, generateSafeTextSample } from '@/lib/actions';
 import { useLogStore } from '@/lib/store';
 import { type ScanResult } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -53,6 +55,12 @@ const severityStyles = {
 };
 
 export default function ScanPageClient() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const { toast } = useToast();
   const addLog = useLogStore((state) => state.addLog);
   const [result, setResult] = useState<ScanResult | null>(null);
@@ -148,6 +156,40 @@ export default function ScanPageClient() {
     setIsLoading(false);
   }
 
+  const handleGenerateCodeSample = async () => {
+    setIsLoading(true);
+    try {
+      const res = await generateCodeSample();
+      if ('sampleText' in res) {
+        form.setValue('textInput', res.sampleText);
+        form.setValue('imageInput', undefined);
+        setImagePreview(null);
+        toast({ title: 'Code Sample Generated', description: 'Sample with smart quotes/hidden chars added.' });
+      }
+    } catch (error) {
+      console.error('Error generating code sample:', error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to generate code sample.' });
+    }
+    setIsLoading(false);
+  }
+
+  const handleGenerateSafeTextSample = async () => {
+    setIsLoading(true);
+    try {
+      const res = await generateSafeTextSample();
+      if ('sampleText' in res) {
+        form.setValue('textInput', res.sampleText);
+        form.setValue('imageInput', undefined);
+        setImagePreview(null);
+        toast({ title: 'SafeText Sample Generated', description: 'Sample with regional spelling/homoglyphs added.' });
+      }
+    } catch (error) {
+      console.error('Error generating SafeText sample:', error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to generate SafeText sample.' });
+    }
+    setIsLoading(false);
+  }
+
   const handleSubmit = async (data: FormValues) => {
     setIsLoading(true);
     setResult(null);
@@ -177,9 +219,20 @@ export default function ScanPageClient() {
     }
   }
 
+  if (!mounted) {
+    return (
+      <div className="container mx-auto p-4 md:p-8 flex-1 relative z-10 min-h-[60vh]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start animate-pulse">
+          <div className="h-[600px] bg-muted/20 rounded-xl"></div>
+          <div className="h-[600px] bg-muted/20 rounded-xl"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-4 md:p-8 flex-1 relative z-10">
-      <div className="absolute inset-0 -z-10">
+      <div className="absolute inset-0 -z-10 overflow-hidden">
         <Hyperspeed effectOptions={hyperspeedPresets.one} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -333,6 +386,28 @@ export default function ScanPageClient() {
                     >
                       <Shield className="mr-2 h-4 w-4" />
                       Unicode Threat
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleGenerateCodeSample}
+                      disabled={isLoading}
+                      className="w-full hover:bg-accent/5 hover:text-accent border-input/50"
+                      data-testid="generate-code-sample-btn"
+                    >
+                      <Code className="mr-2 h-4 w-4" />
+                      Code Sample
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleGenerateSafeTextSample}
+                      disabled={isLoading}
+                      className="w-full hover:bg-accent/5 hover:text-accent border-input/50 sm:col-span-2 md:col-span-1"
+                      data-testid="generate-safetext-sample-btn"
+                    >
+                      <Type className="mr-2 h-4 w-4" />
+                      SafeText Sample
                     </Button>
                   </div>
                 </div>

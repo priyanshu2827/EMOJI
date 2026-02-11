@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useLogStore } from '@/lib/store';
 import { exportToCsv } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,12 @@ import Hyperspeed from './hyperspeed';
 import { hyperspeedPresets } from './hyperspeed-presets';
 
 export default function DashboardPageClient() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const { logs, clearLogs } = useLogStore();
   const { toast } = useToast();
   const [severityFilter, setSeverityFilter] = useState<Severity | 'ALL'>('ALL');
@@ -59,9 +65,21 @@ export default function DashboardPageClient() {
     });
   };
 
+  if (!mounted) {
+    return (
+      <div className="container mx-auto p-4 md:p-8 flex-1 flex flex-col relative z-10 min-h-[60vh]">
+        <div className="animate-pulse">
+          <div className="h-10 w-48 bg-muted rounded mb-2"></div>
+          <div className="h-4 w-64 bg-muted rounded mb-8"></div>
+          <div className="h-[400px] bg-muted/20 rounded-xl"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-4 md:p-8 flex-1 flex flex-col relative z-10">
-       <div className="absolute inset-0 -z-10">
+      <div className="absolute inset-0 -z-10 overflow-hidden">
         <Hyperspeed effectOptions={hyperspeedPresets.one} />
       </div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -71,7 +89,7 @@ export default function DashboardPageClient() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-           <Button variant="outline" onClick={handleExport}>
+          <Button variant="outline" onClick={handleExport}>
             <Download className="mr-2" />
             Export CSV
           </Button>
@@ -100,7 +118,7 @@ export default function DashboardPageClient() {
       </div>
 
       <div className="flex items-center gap-2 mb-4 p-4 bg-card/80 backdrop-blur-sm border rounded-lg">
-        <Filter className="h-5 w-5 text-muted-foreground"/>
+        <Filter className="h-5 w-5 text-muted-foreground" />
         <span className="font-medium mr-4">Filters:</span>
         <Select
           value={severityFilter}
@@ -131,7 +149,7 @@ export default function DashboardPageClient() {
           </SelectContent>
         </Select>
       </div>
-      
+
       <div className="border rounded-lg flex-1 bg-card/80 backdrop-blur-sm">
         <DashboardTable logs={filteredLogs} />
       </div>

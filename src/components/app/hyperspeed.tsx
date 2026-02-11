@@ -18,7 +18,7 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
   useEffect(() => {
     if (appRef.current) {
       appRef.current.dispose();
-      const container = document.getElementById('lights');
+      const container = hyperspeed.current;
       if (container) {
         while (container.firstChild) {
           container.removeChild(container.firstChild);
@@ -343,7 +343,8 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
         this.onTouchEnd = this.onTouchEnd.bind(this);
         this.onContextMenu = this.onContextMenu.bind(this);
 
-        window.addEventListener('resize', this.onWindowResize.bind(this));
+        this.onWindowResize = this.onWindowResize.bind(this);
+        window.addEventListener('resize', this.onWindowResize);
       }
 
       onWindowResize() {
@@ -505,7 +506,7 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
         if (this.composer) this.composer.dispose();
         if (this.scene) this.scene.clear();
 
-        window.removeEventListener('resize', this.onWindowResize.bind(this));
+        window.removeEventListener('resize', this.onWindowResize);
         if (this.container) {
           this.container.removeEventListener('mousedown', this.onMouseDown);
           this.container.removeEventListener('mouseup', this.onMouseUp);
@@ -994,7 +995,7 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
     }
 
     (function () {
-      const container = document.getElementById('lights');
+      const container = hyperspeed.current;
       if (!container) return;
 
       const myApp = new App(container, effectOptions);
@@ -1009,7 +1010,7 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
     };
   }, [effectOptions]);
 
-  return <div id="lights" ref={hyperspeed}></div>;
+  return <div ref={hyperspeed} className="w-full h-full overflow-hidden" />;
 };
 
 export default Hyperspeed;

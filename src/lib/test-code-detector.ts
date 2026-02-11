@@ -21,7 +21,7 @@ console.log('Expected: Detect LEFT_DOUBLE_QUOTE and RIGHT_DOUBLE_QUOTE\n');
 
 // Test 2: Multiple Smart Quotes
 console.log('Test 2: Multiple Smart Quote Types');
-const mixedQuoteSample = '"Hello" and 'World' with «angles»';
+const mixedQuoteSample = '"Hello" and \'World\' with «angles»';
 const mixedQuoteResult = detectSmartQuotes(mixedQuoteSample);
 console.log('Sample:', mixedQuoteSample);
 console.log('Result:', JSON.stringify(mixedQuoteResult, null, 2));

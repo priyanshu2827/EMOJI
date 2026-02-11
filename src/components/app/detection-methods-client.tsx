@@ -1,14 +1,15 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { 
-  EyeOff, 
-  Binary, 
-  AlertTriangle, 
-  Shield, 
+import {
+  EyeOff,
+  Binary,
+  AlertTriangle,
+  Shield,
   Fingerprint,
   BarChart3,
   Code,
@@ -29,10 +30,10 @@ function ZeroWidthSection() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-muted-foreground">
-            Zero-width characters are invisible Unicode characters that take up no visual space but exist in the text. 
+            Zero-width characters are invisible Unicode characters that take up no visual space but exist in the text.
             They can be used to hide secret messages, fingerprint text, or bypass content filters.
           </p>
-          
+
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="bg-muted/50">
               <CardHeader className="pb-2">
@@ -77,7 +78,7 @@ function ZeroWidthSection() {
               Security Risk
             </h4>
             <p className="text-sm text-muted-foreground">
-              Zero-width steganography can embed hidden watermarks to track document leaks, hide malicious payloads, 
+              Zero-width steganography can embed hidden watermarks to track document leaks, hide malicious payloads,
               or encode messages that evade keyword-based security filters.
             </p>
           </div>
@@ -99,7 +100,7 @@ function EntropySection() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-muted-foreground">
-            Shannon entropy measures the randomness or unpredictability in text. Natural language has predictable patterns, 
+            Shannon entropy measures the randomness or unpredictability in text. Natural language has predictable patterns,
             while hidden data or encrypted content typically shows higher entropy.
           </p>
 
@@ -165,7 +166,7 @@ function HomoglyphSection() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-muted-foreground">
-            Homoglyphs are characters from different scripts that look identical or very similar to common ASCII characters. 
+            Homoglyphs are characters from different scripts that look identical or very similar to common ASCII characters.
             They are often used in phishing attacks, spoofing URLs, or bypassing content filters.
           </p>
 
@@ -242,7 +243,7 @@ function UnicodeThreatSection() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-muted-foreground">
-            Beyond zero-width characters, Unicode contains many other characters that can be exploited for malicious purposes. 
+            Beyond zero-width characters, Unicode contains many other characters that can be exploited for malicious purposes.
             Our scanner detects multiple categories of Unicode-based threats.
           </p>
 
@@ -304,8 +305,8 @@ function UnicodeThreatSection() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">
-                <p>U+FE00 to U+FE0F modify the appearance of preceding characters. While often legitimate (like emoji presentation), 
-                excessive use can indicate data hiding or fingerprinting.</p>
+                <p>U+FE00 to U+FE0F modify the appearance of preceding characters. While often legitimate (like emoji presentation),
+                  excessive use can indicate data hiding or fingerprinting.</p>
               </CardContent>
             </Card>
           </div>
@@ -327,7 +328,7 @@ function EmojiSection() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-muted-foreground">
-            Emojis can hide secret messages by encoding data in the selection and sequence of emoji characters. 
+            Emojis can hide secret messages by encoding data in the selection and sequence of emoji characters.
             Our scanner analyzes emoji patterns for suspicious encoding.
           </p>
 
@@ -374,7 +375,7 @@ function EmojiSection() {
               How EmojiEncode Works
             </h4>
             <p className="text-sm text-muted-foreground">
-              Our EmojiEncode tool converts text to binary, then maps each bit pattern to a specific emoji. 
+              Our EmojiEncode tool converts text to binary, then maps each bit pattern to a specific emoji.
               The decoder reverses this process by analyzing the emoji sequence and extracting the hidden binary data.
             </p>
           </div>
@@ -396,7 +397,7 @@ function ImageSection() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-muted-foreground">
-            Least Significant Bit (LSB) steganography hides data in the least important bits of image pixels. 
+            Least Significant Bit (LSB) steganography hides data in the least important bits of image pixels.
             Our scanner uses statistical analysis to detect this type of hidden content.
           </p>
 
@@ -462,19 +463,36 @@ function ImageSection() {
 }
 
 export default function DetectionMethodsClient() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="container mx-auto p-4 md:p-8 relative z-10 min-h-[60vh]">
+        <div className="mb-8 animate-pulse">
+          <div className="h-10 w-64 bg-muted rounded mb-2"></div>
+          <div className="h-4 w-96 bg-muted rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-4 md:p-8 relative z-10">
-      <div className="absolute inset-0 -z-10">
+      <div className="absolute inset-0 -z-10 overflow-hidden">
         <Hyperspeed effectOptions={hyperspeedPresets.one} />
       </div>
-      
+
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight font-headline text-white">Detection Methods</h1>
         <p className="text-muted-foreground">
           Learn how INVISIFY identifies hidden content, steganography, and Unicode-based security threats.
         </p>
       </div>
-      
+
       <Tabs defaultValue="zero-width" className="w-full">
         <TabsList className="flex flex-wrap justify-start gap-2 h-auto bg-transparent mb-8">
           <TabsTrigger value="zero-width" className="flex items-center gap-2 data-[state=active]:bg-primary/20">
@@ -502,27 +520,27 @@ export default function DetectionMethodsClient() {
             Image LSB
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="zero-width">
           <ZeroWidthSection />
         </TabsContent>
-        
+
         <TabsContent value="entropy">
           <EntropySection />
         </TabsContent>
-        
+
         <TabsContent value="homoglyph">
           <HomoglyphSection />
         </TabsContent>
-        
+
         <TabsContent value="unicode">
           <UnicodeThreatSection />
         </TabsContent>
-        
+
         <TabsContent value="emoji">
           <EmojiSection />
         </TabsContent>
-        
+
         <TabsContent value="image">
           <ImageSection />
         </TabsContent>
