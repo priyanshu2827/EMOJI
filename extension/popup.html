@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            width: 300px;
+            padding: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            margin: 0;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 12px;
+        }
+        .logo {
+            width: 32px;
+            height: 32px;
+            background: #0ea5e9;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        h1 {
+            font-size: 16px;
+            margin: 0;
+        }
+        .status-box {
+            background: #1e293b;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border: 1px solid #334155;
+        }
+        .status-title {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+        .status-value {
+            font-weight: bold;
+            color: #22c55e;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .pulse {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+        .info {
+            font-size: 12px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #0ea5e9;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 20px;
+            cursor: pointer;
+            border: none;
+        }
+        .btn:hover { background: #0284c7; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">S</div>
+        <h1>Sentinel Prime</h1>
+    </div>
+    
+    <div class="status-box">
+        <div class="status-title">System Status</div>
+        <div class="status-value">
+            <div class="pulse"></div>
+            Email Guard Active
+        </div>
+    </div>
+    
+    <div class="info">
+        INVISIFY Forensic Engine is monitoring your email composition. Hidden steganography and homoglyph attacks will be intercepted automatically.
+    </div>
+
+    <button id="checkNow" class="btn">Security Dashboard</button>
+
+    <script src="popup.js"></script>
+</body>
+</html>

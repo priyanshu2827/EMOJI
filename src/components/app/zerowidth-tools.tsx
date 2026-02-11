@@ -33,8 +33,9 @@ function Encoder() {
   }, [state, toast]);
 
   const handleCopy = async () => {
-    if ((state as any)?.encoded) {
-      await navigator.clipboard.writeText((state as any).encoded);
+    const s = state as any;
+    if (s?.encoded) {
+      await navigator.clipboard.writeText(s.encoded);
       setCopied(true);
       toast({ title: 'Copied!', description: 'Encoded text copied to clipboard.' });
       setTimeout(() => setCopied(false), 2000);
@@ -151,7 +152,7 @@ function Encoder() {
               <Terminal className="h-4 w-4" />
               <AlertTitle>Success!</AlertTitle>
               <AlertDescription className="mt-2 p-2 bg-muted rounded-md font-mono break-words text-sm max-h-[200px] overflow-y-auto">
-                {(state as any).encoded}
+                {(state as any)?.encoded}
               </AlertDescription>
             </Alert>
             <p className="text-xs text-muted-foreground">
@@ -225,7 +226,7 @@ function Decoder() {
               <Terminal className="h-4 w-4" />
               <AlertTitle>Message Found!</AlertTitle>
               <AlertDescription className="mt-2 p-2 bg-muted rounded-md break-words">
-                {(state as any).decoded || '(No hidden message found)'}
+                {(state as any)?.decoded || '(No hidden message found)'}
               </AlertDescription>
             </Alert>
           </div>
@@ -262,8 +263,9 @@ function Cleaner() {
   }, [state, toast]);
 
   const handleCopy = async () => {
-    if ((state as any)?.cleaned) {
-      await navigator.clipboard.writeText((state as any).cleaned);
+    const s = state as any;
+    if (s?.cleaned) {
+      await navigator.clipboard.writeText(s.cleaned);
       setCopied(true);
       toast({ title: 'Copied!', description: 'Cleaned text copied to clipboard.' });
       setTimeout(() => setCopied(false), 2000);
@@ -315,7 +317,7 @@ function Cleaner() {
                 {(state as any).cleaned}
               </AlertDescription>
             </Alert>
-            {(state as any).removedCount !== undefined && (state as any).removedCount > 0 && (
+            {(state as any)?.removedCount !== undefined && (state as any)?.removedCount > 0 && (
               <p className="text-xs text-muted-foreground">
                 Sweep away {(state as any).removedCount} hidden zero-width character(s)
               </p>

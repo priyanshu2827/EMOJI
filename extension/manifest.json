@@ -1,0 +1,31 @@
+{
+    "manifest_version": 3,
+    "name": "Sentinel Prime: Email Guard",
+    "version": "0.1.0",
+    "description": "Scans emails for hidden steganography and homoglyph attacks.",
+    "permissions": [
+        "activeTab",
+        "scripting",
+        "storage"
+    ],
+    "host_permissions": [
+        "https://mail.google.com/*",
+        "http://localhost:3000/*"
+    ],
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://mail.google.com/*"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "css": [
+                "content.css"
+            ]
+        }
+    ]
+}

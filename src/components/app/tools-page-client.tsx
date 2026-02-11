@@ -58,7 +58,7 @@ function Encoder() {
               <Terminal className="h-4 w-4" />
               <AlertTitle>Success!</AlertTitle>
               <AlertDescription className="mt-2 p-2 bg-muted rounded-md font-mono break-words text-sm">
-                {(state as any).encoded}
+                {(state as any)?.encoded}
               </AlertDescription>
             </Alert>
           </div>
@@ -107,7 +107,7 @@ function Decoder() {
               <Terminal className="h-4 w-4" />
               <AlertTitle>Success!</AlertTitle>
               <AlertDescription className="mt-2 p-2 bg-muted rounded-md break-words">
-                {(state as any).decoded}
+                {(state as any)?.decoded}
               </AlertDescription>
             </Alert>
           </div>

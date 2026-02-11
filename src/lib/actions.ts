@@ -44,10 +44,16 @@ export async function analyzeContent(
         );
 
         const media_type = detection.type;
-        const results = detection.findings;
-        const score = detection.score;
-        const severity = detection.severity;
         const rawFindings = detection.findings;
+        const score = detection.score;
+        const engineSeverity = detection.severity;
+
+        let severity: Severity = 'CLEAN';
+        if (engineSeverity === 'Critical' || engineSeverity === 'High') {
+            severity = 'HIGH-RISK';
+        } else if (engineSeverity === 'Medium' || engineSeverity === 'Low') {
+            severity = 'SUSPICIOUS';
+        }
 
         const summaryResult = await summarizeFindings({
             findings: JSON.stringify(rawFindings, null, 2),

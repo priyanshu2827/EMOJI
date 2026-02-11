@@ -1,0 +1,21 @@
+/* Sentinel Prime: Email Guard - Content Styles */
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.sentinel-prime-alert {
+    border: 2px solid #ef4444 !important;
+    background-color: rgba(239, 68, 68, 0.05) !important;
+}
+
+/* We use inline styles for the toast to avoid conflicts, 
+   but we can define animations here. */

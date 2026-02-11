@@ -63,7 +63,7 @@ export const HOMOGLYPH_CATEGORIES = {
         'ԍ': 'G', 'Ԍ': 'G', 'н': 'H', 'Н': 'H', 'І': 'I', 'Ј': 'J', 'к': 'K',
         'К': 'K', 'м': 'M', 'М': 'M', 'О': 'O', 'Р': 'P', 'Ѕ': 'S', 'т': 'T',
         'Т': 'T', 'Х': 'X', 'У': 'Y',
-        'З': '3', 'Ч': '4', 'б': '6', 'Ъ': 'B',
+        'З': '3', 'Ч': '4', 'б': '6', 'Ъ': 'B', 'ӏ': 'l',
     },
     GREEK: {
         'ϲ': 'c', 'ί': 'i', 'ο': 'o', 'ρ': 'p', 'ω': 'w', 'ν': 'v',
@@ -233,4 +233,42 @@ export function analyzeMarkovChain(text: string): { score: number; suspicious: b
     const score = entropy / Math.max(1, Math.log2(total));
     const suspicious = score > 0.85 || (score < 0.3 && text.length > 50);
     return { score, suspicious };
+}
+
+/**
+ * Sentinel Prime: Homoglyph Link Detection
+ * Detects if URLs in the text contain homoglyph-based phishing attempts.
+ */
+export function detect_homoglyph_links(text: string): { detected: boolean; suspiciousLinks: Array<{ original: string; decoded: string; domain: string }> } {
+    const urlRegex = /https?:\/\/[^\s/$.?#][^\s]*/gi;
+    const links = text.match(urlRegex) || [];
+    const suspiciousLinks: Array<{ original: string; decoded: string; domain: string }> = [];
+
+    for (const link of links) {
+        // Extract domain manually to handle homoglyphs that make URL constructor throw
+        const match = link.match(/https?:\/\/([^/:\s]+)/i);
+        if (!match) continue;
+
+        const domain = match[1];
+        let decodedDomain = '';
+        let isSuspicious = false;
+
+        for (const char of domain) {
+            if (HOMOGLYPHS[char]) {
+                isSuspicious = true;
+                decodedDomain += HOMOGLYPHS[char];
+            } else {
+                decodedDomain += char;
+            }
+        }
+
+        if (isSuspicious) {
+            suspiciousLinks.push({ original: link, decoded: decodedDomain, domain });
+        }
+    }
+
+    return {
+        detected: suspiciousLinks.length > 0,
+        suspiciousLinks
+    };
 }
