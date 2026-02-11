@@ -9,6 +9,10 @@ import { Button } from '@/components/ui/button';
 export default function Header() {
   const pathname = usePathname();
 
+  if (pathname === '/') {
+    return null;
+  }
+
   const navItems = [
     { href: '/scan', label: 'Scan' },
     { href: '/dashboard', label: 'Dashboard' },

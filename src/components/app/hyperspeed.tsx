@@ -78,11 +78,11 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
           let uAmp = mountainUniforms.uAmp.value;
           let distortion = new THREE.Vector3(
             Math.cos(progress * Math.PI * uFreq.x + time) * uAmp.x -
-              Math.cos(movementProgressFix * Math.PI * uFreq.x + time) * uAmp.x,
+            Math.cos(movementProgressFix * Math.PI * uFreq.x + time) * uAmp.x,
             nsin(progress * Math.PI * uFreq.y + time) * uAmp.y -
-              nsin(movementProgressFix * Math.PI * uFreq.y + time) * uAmp.y,
+            nsin(movementProgressFix * Math.PI * uFreq.y + time) * uAmp.y,
             nsin(progress * Math.PI * uFreq.z + time) * uAmp.z -
-              nsin(movementProgressFix * Math.PI * uFreq.z + time) * uAmp.z
+            nsin(movementProgressFix * Math.PI * uFreq.z + time) * uAmp.z
           );
           let lookAtAmp = new THREE.Vector3(2, 2, 2);
           let lookAtOffset = new THREE.Vector3(0, 0, -5);
@@ -110,9 +110,9 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
           let uAmp = xyUniforms.uAmp.value;
           let distortion = new THREE.Vector3(
             Math.cos(progress * Math.PI * uFreq.x + time) * uAmp.x -
-              Math.cos(movementProgressFix * Math.PI * uFreq.x + time) * uAmp.x,
+            Math.cos(movementProgressFix * Math.PI * uFreq.x + time) * uAmp.x,
             Math.sin(progress * Math.PI * uFreq.y + time + Math.PI / 2) * uAmp.y -
-              Math.sin(movementProgressFix * Math.PI * uFreq.y + time + Math.PI / 2) * uAmp.y,
+            Math.sin(movementProgressFix * Math.PI * uFreq.y + time + Math.PI / 2) * uAmp.y,
             0
           );
           let lookAtAmp = new THREE.Vector3(2, 0.4, 1);
@@ -141,9 +141,9 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
           let uAmp = LongRaceUniforms.uAmp.value;
           let distortion = new THREE.Vector3(
             Math.sin(progress * Math.PI * uFreq.x + time) * uAmp.x -
-              Math.sin(camProgress * Math.PI * uFreq.x + time) * uAmp.x,
+            Math.sin(camProgress * Math.PI * uFreq.x + time) * uAmp.x,
             Math.sin(progress * Math.PI * uFreq.y + time) * uAmp.y -
-              Math.sin(camProgress * Math.PI * uFreq.y + time) * uAmp.y,
+            Math.sin(camProgress * Math.PI * uFreq.y + time) * uAmp.y,
             0
           );
           let lookAtAmp = new THREE.Vector3(1, 1, 0);
@@ -369,12 +369,12 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
 
         const smaaEffect = new SMAAEffect(this.assets.smaa.search, this.assets.smaa.area);
         const smaaPass = new EffectPass(this.camera, smaaEffect);
-        
+
         this.renderPass.renderToScreen = false;
-        if(this.bloomPass) this.bloomPass.renderToScreen = false;
+        if (this.bloomPass) this.bloomPass.renderToScreen = false;
         smaaPass.renderToScreen = true;
         this.composer.addPass(this.renderPass);
-        if(this.bloomPass) this.composer.addPass(this.bloomPass);
+        if (this.bloomPass) this.composer.addPass(this.bloomPass);
         this.composer.addPass(smaaPass);
       }
 
@@ -500,13 +500,13 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
 
       dispose() {
         this.disposed = true;
-        
+
         if (this.renderer) this.renderer.dispose();
         if (this.composer) this.composer.dispose();
         if (this.scene) this.scene.clear();
 
         window.removeEventListener('resize', this.onWindowResize.bind(this));
-        if(this.container) {
+        if (this.container) {
           this.container.removeEventListener('mousedown', this.onMouseDown);
           this.container.removeEventListener('mouseup', this.onMouseUp);
           this.container.removeEventListener('mouseout', this.onMouseUp);
@@ -540,10 +540,10 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
       return Math.random() * base;
     };
 
-    const pickRandom = <T>(arr: T[] | T): T => {
+    function pickRandom<T>(arr: any): T {
       if (Array.isArray(arr)) return arr[Math.floor(Math.random() * arr.length)];
-      return arr;
-    };
+      return arr as T;
+    }
 
     function lerp(current: number, target: number, speed = 0.1, limit = 0.001) {
       let change = (target - current) * speed;
@@ -638,54 +638,54 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
         instanced.setAttribute('aColor', new THREE.InstancedBufferAttribute(new Float32Array(aColor), 3, false));
 
         const carLightsFragment = `
-          #define USE_FOG;
-          ${THREE.ShaderChunk['fog_pars_fragment']}
-          varying vec3 vColor;
-          varying vec2 vUv; 
-          uniform vec2 uFade;
-          void main() {
-            vec3 color = vec3(vColor);
-            float alpha = smoothstep(uFade.x, uFade.y, vUv.x);
-            gl_FragColor = vec4(color, alpha);
-            if (gl_FragColor.a < 0.0001) discard;
-            ${THREE.ShaderChunk['fog_fragment']}
+      #define USE_FOG;
+      ${THREE.ShaderChunk['fog_pars_fragment']}
+      varying vec3 vColor;
+      varying vec2 vUv;
+      uniform vec2 uFade;
+      void main() {
+        vec3 color = vec3(vColor);
+      float alpha = smoothstep(uFade.x, uFade.y, vUv.x);
+      gl_FragColor = vec4(color, alpha);
+      if (gl_FragColor.a < 0.0001) discard;
+      ${THREE.ShaderChunk['fog_fragment']}
           }
-        `;
+      `;
 
         const carLightsVertex = `
-          #define USE_FOG;
-          ${THREE.ShaderChunk['fog_pars_vertex']}
-          attribute vec3 aOffset;
-          attribute vec3 aMetrics;
-          attribute vec3 aColor;
-          uniform float uTravelLength;
-          uniform float uTime;
-          varying vec2 vUv; 
-          varying vec3 vColor; 
-          #include <getDistortion_vertex>
-          void main() {
-            vec3 transformed = position.xyz;
-            float radius = aMetrics.r;
-            float myLength = aMetrics.g;
-            float speed = aMetrics.b;
+      #define USE_FOG;
+      ${THREE.ShaderChunk['fog_pars_vertex']}
+      attribute vec3 aOffset;
+      attribute vec3 aMetrics;
+      attribute vec3 aColor;
+      uniform float uTravelLength;
+      uniform float uTime;
+      varying vec2 vUv;
+      varying vec3 vColor;
+      #include <getDistortion_vertex>
+        void main() {
+          vec3 transformed = position.xyz;
+        float radius = aMetrics.r;
+        float myLength = aMetrics.g;
+        float speed = aMetrics.b;
 
-            transformed.xy *= radius;
-            transformed.z *= myLength;
+        transformed.xy *= radius;
+        transformed.z *= myLength;
 
-            transformed.z += myLength - mod(uTime * speed + aOffset.z, uTravelLength);
-            transformed.xy += aOffset.xy;
+        transformed.z += myLength - mod(uTime * speed + aOffset.z, uTravelLength);
+        transformed.xy += aOffset.xy;
 
-            float progress = abs(transformed.z / uTravelLength);
-            transformed.xyz += getDistortion(progress);
+        float progress = abs(transformed.z / uTravelLength);
+        transformed.xyz += getDistortion(progress);
 
-            vec4 mvPosition = modelViewMatrix * vec4(transformed, 1.);
-            gl_Position = projectionMatrix * mvPosition;
-            vUv = uv;
-            vColor = aColor;
-            ${THREE.ShaderChunk['fog_vertex']}
+        vec4 mvPosition = modelViewMatrix * vec4(transformed, 1.);
+        gl_Position = projectionMatrix * mvPosition;
+        vUv = uv;
+        vColor = aColor;
+        ${THREE.ShaderChunk['fog_vertex']}
           }
         `;
-        
+
         let material = new THREE.ShaderMaterial({
           fragmentShader: carLightsFragment,
           vertexShader: carLightsVertex,
@@ -764,44 +764,44 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
         instanced.setAttribute('aMetrics', new THREE.InstancedBufferAttribute(new Float32Array(aMetrics), 2, false));
 
         const sideSticksVertex = `
-          #define USE_FOG;
-          ${THREE.ShaderChunk['fog_pars_vertex']}
-          attribute float aOffset;
-          attribute vec3 aColor;
-          attribute vec2 aMetrics;
-          uniform float uTravelLength;
-          uniform float uTime;
-          varying vec3 vColor;
-          mat4 rotationY( in float angle ) {
+        #define USE_FOG;
+        ${THREE.ShaderChunk['fog_pars_vertex']}
+        attribute float aOffset;
+        attribute vec3 aColor;
+        attribute vec2 aMetrics;
+        uniform float uTravelLength;
+        uniform float uTime;
+        varying vec3 vColor;
+        mat4 rotationY( in float angle ) {
             return mat4(	cos(angle),		0,		sin(angle),	0,
-                         0,		1.0,			 0,	0,
-                    -sin(angle),	0,		cos(angle),	0,
-                    0, 		0,				0,	1);
+        0,		1.0,			 0,	0,
+        -sin(angle),	0,		cos(angle),	0,
+        0, 		0,				0,	1);
           }
-          #include <getDistortion_vertex>
+        #include <getDistortion_vertex>
           void main(){
             vec3 transformed = position.xyz;
-            float width = aMetrics.x;
-            float height = aMetrics.y;
+          float width = aMetrics.x;
+          float height = aMetrics.y;
 
-            transformed.xy *= vec2(width, height);
-            float time = mod(uTime * 60. * 2. + aOffset, uTravelLength);
+          transformed.xy *= vec2(width, height);
+          float time = mod(uTime * 60. * 2. + aOffset, uTravelLength);
 
-            transformed = (rotationY(3.14/2.) * vec4(transformed,1.)).xyz;
+          transformed = (rotationY(3.14/2.) * vec4(transformed,1.)).xyz;
 
-            transformed.z += - uTravelLength + time;
+          transformed.z += - uTravelLength + time;
 
-            float progress = abs(transformed.z / uTravelLength);
-            transformed.xyz += getDistortion(progress);
+          float progress = abs(transformed.z / uTravelLength);
+          transformed.xyz += getDistortion(progress);
 
-            transformed.y += height / 2.;
-            transformed.x += -width / 2.;
-            vec4 mvPosition = modelViewMatrix * vec4(transformed, 1.);
-            gl_Position = projectionMatrix * mvPosition;
-            vColor = aColor;
-            ${THREE.ShaderChunk['fog_vertex']}
+          transformed.y += height / 2.;
+          transformed.x += -width / 2.;
+          vec4 mvPosition = modelViewMatrix * vec4(transformed, 1.);
+          gl_Position = projectionMatrix * mvPosition;
+          vColor = aColor;
+          ${THREE.ShaderChunk['fog_vertex']}
           }
-        `;
+          `;
 
         const sideSticksFragment = `
           #define USE_FOG;
@@ -809,10 +809,10 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
           varying vec3 vColor;
           void main(){
             vec3 color = vec3(vColor);
-            gl_FragColor = vec4(color,1.);
-            ${THREE.ShaderChunk['fog_fragment']}
+          gl_FragColor = vec4(color,1.);
+          ${THREE.ShaderChunk['fog_fragment']}
           }
-        `;
+          `;
 
         const material = new THREE.ShaderMaterial({
           fragmentShader: sideSticksFragment,
@@ -866,7 +866,7 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
           20,
           segments
         );
-        
+
         let roadMarkings_vars = `
           uniform float uLanes;
           uniform vec3 uBrokenLinesColor;
@@ -874,8 +874,8 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
           uniform float uShoulderLinesWidthPercentage;
           uniform float uBrokenLinesWidthPercentage;
           uniform float uBrokenLinesLengthPercentage;
-        `;
-        
+          `;
+
         let roadMarkings_fragment = `
           float laneWidth = 1. / uLanes;
           float shoulderLines = step(1. - uShoulderLinesWidthPercentage, uv.x) + step(uv.x, uShoulderLinesWidthPercentage);
@@ -885,47 +885,47 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
           float brokenLines = 0.;
           for (float i = 1.; i < uLanes; i++){
             float brokenLinePos = i * laneWidth;
-            brokenLines += step(brokenLinePos - brokenLinesWidth, uv.x) * step(uv.x, brokenLinePos + brokenLinesWidth) * step(1. - uBrokenLinesLengthPercentage, fract(uv.y * 10.));
+          brokenLines += step(brokenLinePos - brokenLinesWidth, uv.x) * step(uv.x, brokenLinePos + brokenLinesWidth) * step(1. - uBrokenLinesLengthPercentage, fract(uv.y * 10.));
           }
           color = mix(color, uBrokenLinesColor, brokenLines);
-        `;
+          `;
 
         const roadBaseFragment = `
           #define USE_FOG;
-          varying vec2 vUv; 
+          varying vec2 vUv;
           uniform vec3 uColor;
           uniform float uTime;
           ${isRoad ? roadMarkings_vars : ''}
           ${THREE.ShaderChunk['fog_pars_fragment']}
           void main() {
             vec2 uv = vUv;
-            vec3 color = vec3(uColor);
-            ${isRoad ? roadMarkings_fragment : ''}
-            gl_FragColor = vec4(color, 1.);
-            ${THREE.ShaderChunk['fog_fragment']}
+          vec3 color = vec3(uColor);
+          ${isRoad ? roadMarkings_fragment : ''}
+          gl_FragColor = vec4(color, 1.);
+          ${THREE.ShaderChunk['fog_fragment']}
           }
-        `;
+          `;
 
         const roadVertex = `
-            #define USE_FOG;
-            uniform float uTime;
-            ${THREE.ShaderChunk['fog_pars_vertex']}
-            uniform float uTravelLength;
-            varying vec2 vUv; 
-            #include <getDistortion_vertex>
+          #define USE_FOG;
+          uniform float uTime;
+          ${THREE.ShaderChunk['fog_pars_vertex']}
+          uniform float uTravelLength;
+          varying vec2 vUv;
+          #include <getDistortion_vertex>
             void main() {
               vec3 transformed = position.xyz;
-              vec3 distortion = getDistortion((transformed.y + uTravelLength / 2.) / uTravelLength);
-              transformed.x += distortion.x;
-              transformed.z += distortion.y;
-              transformed.y += -1. * distortion.z;  
-              
-              vec4 mvPosition = modelViewMatrix * vec4(transformed, 1.);
-              gl_Position = projectionMatrix * mvPosition;
-              vUv = uv;
-              ${THREE.ShaderChunk['fog_vertex']}
+            vec3 distortion = getDistortion((transformed.y + uTravelLength / 2.) / uTravelLength);
+            transformed.x += distortion.x;
+            transformed.z += distortion.y;
+            transformed.y += -1. * distortion.z;
+
+            vec4 mvPosition = modelViewMatrix * vec4(transformed, 1.);
+            gl_Position = projectionMatrix * mvPosition;
+            vUv = uv;
+            ${THREE.ShaderChunk['fog_vertex']}
             }
-          `;
+            `;
 
         let uniforms = {
           uTravelLength: { value: options.length },
@@ -995,7 +995,7 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
 
     (function () {
       const container = document.getElementById('lights');
-      if(!container) return;
+      if (!container) return;
 
       const myApp = new App(container, effectOptions);
       appRef.current = myApp;

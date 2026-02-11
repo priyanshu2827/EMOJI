@@ -13,12 +13,14 @@ import {
   Smile,
   EyeOff,
   Shield,
+  Upload,
 } from 'lucide-react';
 
 import { analyzeContent, generateSampleText, generateZeroWidthSample, generateUnicodeThreatSample } from '@/lib/actions';
 import { useLogStore } from '@/lib/store';
 import { type ScanResult } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +37,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import Hyperspeed from './hyperspeed';
 import { hyperspeedPresets } from './hyperspeed-presets';
+import { FindingsTable } from './findings-table';
 
 const formSchema = z.object({
   textInput: z.string().optional(),
@@ -83,15 +86,15 @@ export default function ScanPageClient() {
       if (fileInput) fileInput.value = '';
     }
   };
-  
+
   const handleGenerateSample = async () => {
     setIsLoading(true);
     try {
       console.log('Generating emoji sample...');
-      const res = await generateSampleText('cybersecurity', 'secret message');
+      const res = await generateSampleText('cybersecurity', 'secret message') as any;
       console.log('Response:', res);
-      if ('error' in res) {
-        toast({ variant: 'destructive', title: 'Error', description: res.error });
+      if (res && typeof res === 'object' && 'error' in res) {
+        toast({ variant: 'destructive', title: 'Error', description: res.error as string });
       } else {
         form.setValue('textInput', res.sampleText);
         toast({ title: 'Sample Generated', description: 'Sample text with a hidden message has been added to the text area.' });
@@ -102,20 +105,20 @@ export default function ScanPageClient() {
     }
     setIsLoading(false);
   }
-  
+
   const handleGenerateZeroWidthSample = async () => {
     setIsLoading(true);
     try {
       console.log('Generating zero-width sample...');
-      const res = await generateZeroWidthSample('technology', 'This is a secret message hidden with zero-width characters!');
+      const res = await generateZeroWidthSample('technology', 'This is a secret message hidden with zero-width characters!') as any;
       console.log('Response:', res);
-      if ('error' in res) {
-        toast({ variant: 'destructive', title: 'Error', description: res.error });
+      if (res && typeof res === 'object' && 'error' in res) {
+        toast({ variant: 'destructive', title: 'Error', description: res.error as string });
       } else {
         form.setValue('textInput', res.sampleText);
-        toast({ 
-          title: 'Zero-Width Sample Generated', 
-          description: 'Text with hidden zero-width steganography has been added. Try scanning it!' 
+        toast({
+          title: 'Zero-Width Sample Generated',
+          description: 'Text with hidden zero-width steganography has been added. Try scanning it!'
         });
       }
     } catch (error) {
@@ -129,15 +132,15 @@ export default function ScanPageClient() {
     setIsLoading(true);
     try {
       console.log('Generating unicode threat sample...');
-      const res = await generateUnicodeThreatSample('combined');
+      const res = await generateUnicodeThreatSample('combined') as any;
       console.log('Response:', res);
-      if ('error' in res) {
-        toast({ variant: 'destructive', title: 'Error', description: res.error });
+      if (res && typeof res === 'object' && 'error' in res) {
+        toast({ variant: 'destructive', title: 'Error', description: res.error as string });
       } else {
         form.setValue('textInput', res.sampleText);
-        toast({ 
-          title: 'Unicode Threat Sample Generated', 
-          description: 'Text with prompt injection, BiDi attacks, and exotic spaces has been added!' 
+        toast({
+          title: 'Unicode Threat Sample Generated',
+          description: 'Text with prompt injection, BiDi attacks, and exotic spaces has been added!'
         });
       }
     } catch (error) {
@@ -166,7 +169,7 @@ export default function ScanPageClient() {
     }
     setIsLoading(false);
   };
-  
+
   const getIconForType = (type: ScanResult['type']) => {
     switch (type) {
       case 'Text': return <FileText className="h-5 w-5" />;
@@ -182,9 +185,12 @@ export default function ScanPageClient() {
         <Hyperspeed effectOptions={hyperspeedPresets.one} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        <Card className="bg-card/80 backdrop-blur-sm">
+        <Card className="bg-card/50 backdrop-blur-xl border-accent/20 shadow-2xl transition-all duration-300 hover:shadow-accent/10">
           <CardHeader>
-            <CardTitle className="font-headline">Analyze Content</CardTitle>
+            <CardTitle className="font-headline text-2xl flex items-center gap-2">
+              <Shield className="h-6 w-6 text-accent" />
+              Analyze Content
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -194,11 +200,11 @@ export default function ScanPageClient() {
                   name="textInput"
                   render={({ field }) => (
                     <FormItem suppressHydrationWarning>
-                      <FormLabel suppressHydrationWarning>Text Input</FormLabel>
+                      <FormLabel suppressHydrationWarning className="text-foreground/90 font-medium">Text Input</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Paste text, code, or emojis here..."
-                          className="min-h-[200px] resize-y"
+                          className="min-h-[250px] resize-y bg-background/40 border-input/50 focus:border-accent focus:ring-accent transition-all font-mono text-sm leading-relaxed"
                           {...field}
                           onChange={(e) => {
                             field.onChange(e);
@@ -212,10 +218,10 @@ export default function ScanPageClient() {
                   )}
                 />
 
-                <div className="relative flex items-center">
-                    <div className="flex-grow border-t border-border"></div>
-                    <span className="flex-shrink mx-4 text-muted-foreground text-sm">OR</span>
-                    <div className="flex-grow border-t border-border"></div>
+                <div className="relative flex items-center py-2">
+                  <div className="flex-grow border-t border-border/50"></div>
+                  <span className="flex-shrink mx-4 text-muted-foreground text-xs uppercase tracking-wider font-semibold">OR</span>
+                  <div className="flex-grow border-t border-border/50"></div>
                 </div>
 
                 <FormField
@@ -223,62 +229,90 @@ export default function ScanPageClient() {
                   name="imageInput"
                   render={({ field: { onChange, value, ...rest } }) => (
                     <FormItem suppressHydrationWarning>
-                      <FormLabel suppressHydrationWarning>Image Upload</FormLabel>
+                      <FormLabel suppressHydrationWarning className="text-foreground/90 font-medium">Image Upload</FormLabel>
                       <FormControl>
-                         <Input id="imageInput" type="file" accept="image/*" onChange={(e) => {
-                            onChange(e.target.files);
-                            handleImageChange(e);
-                          }} {...rest} value={value?.fileName} suppressHydrationWarning />
+                        <div className="group">
+                          <Input
+                            id="imageInput"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              onChange(e.target.files);
+                              handleImageChange(e);
+                            }}
+                            {...rest}
+                            value={value?.fileName}
+                            suppressHydrationWarning
+                          />
+                          <div
+                            onClick={() => document.getElementById('imageInput')?.click()}
+                            className={cn(
+                              "border-2 border-dashed border-input/50 rounded-lg p-8 text-center cursor-pointer transition-all hover:border-accent hover:bg-accent/5",
+                              imagePreview ? "border-accent bg-accent/10" : "bg-background/20"
+                            )}
+                          >
+                            {imagePreview ? (
+                              <div className="relative w-full h-48 flex items-center justify-center">
+                                <img
+                                  src={imagePreview}
+                                  alt="Preview"
+                                  className="max-h-full max-w-full object-contain rounded shadow-sm"
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded">
+                                  <p className="text-white font-medium">Click to change</p>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground group-hover:text-accent transition-colors">
+                                <Upload className="h-10 w-10 mb-2" />
+                                <p className="font-medium">Click to upload or drag and drop</p>
+                                <p className="text-xs text-muted-foreground/70">SVG, PNG, JPG or GIF (max. 5MB)</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <div className="mt-4 relative w-full h-48 rounded-md overflow-hidden border bg-muted/10 flex items-center justify-center">
-                  {imagePreview ? (
-                    <img src={imagePreview} alt="Image preview" className="w-full h-full object-contain"/>
-                  ) : (
-                    <div className="text-center text-muted-foreground text-sm">
-                      <FileImage className="mx-auto h-8 w-8 mb-2" />
-                      Image preview will appear here
-                    </div>
-                  )}
-                </div>
-                
-                <div className="flex flex-col gap-2 pt-4">
-                  <Button type="submit" disabled={isLoading} className="w-full" data-testid="scan-now-btn">
-                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+
+                <div className="flex flex-col gap-3 pt-2">
+                  <Button type="submit" disabled={isLoading} className="w-full text-lg h-12 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300" data-testid="scan-now-btn">
+                    {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
                     {isLoading ? 'Scanning...' : 'Scan Now'}
                   </Button>
+
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={handleGenerateSample} 
-                      disabled={isLoading} 
-                      className="w-full"
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleGenerateSample}
+                      disabled={isLoading}
+                      className="w-full hover:bg-accent/5 hover:text-accent border-input/50"
                       data-testid="generate-emoji-sample-btn"
                     >
                       <Smile className="mr-2 h-4 w-4" />
-                      Emoji
+                      Emoji Sample
                     </Button>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={handleGenerateZeroWidthSample} 
-                      disabled={isLoading} 
-                      className="w-full"
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleGenerateZeroWidthSample}
+                      disabled={isLoading}
+                      className="w-full hover:bg-accent/5 hover:text-accent border-input/50"
                       data-testid="generate-zerowidth-sample-btn"
                     >
                       <EyeOff className="mr-2 h-4 w-4" />
                       Zero-Width
                     </Button>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={handleGenerateUnicodeThreatSample} 
-                      disabled={isLoading} 
-                      className="w-full"
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleGenerateUnicodeThreatSample}
+                      disabled={isLoading}
+                      className="w-full hover:bg-accent/5 hover:text-accent border-input/50"
                       data-testid="generate-unicode-threat-btn"
                     >
                       <Shield className="mr-2 h-4 w-4" />
@@ -291,46 +325,74 @@ export default function ScanPageClient() {
           </CardContent>
         </Card>
 
-        <div className="sticky top-20">
-          <Card className="min-h-[400px] bg-card/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="font-headline">Scan Result</CardTitle>
+        <div className="sticky top-24">
+          <Card className="min-h-[600px] bg-card/50 backdrop-blur-xl border-accent/20 shadow-2xl flex flex-col transition-all duration-300">
+            <CardHeader className="border-b border-border/40 pb-4">
+              <CardTitle className="font-headline text-2xl flex items-center gap-2">
+                <FileText className="h-6 w-6 text-accent" />
+                Scan Results
+              </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 flex flex-col p-6">
               {isLoading && (
-                <div className="flex flex-col items-center justify-center h-full text-muted-foreground pt-16">
-                  <Loader2 className="h-10 w-10 animate-spin text-accent mb-4" />
-                  <p className="text-lg font-medium">Analyzing...</p>
-                  <p>This may take a moment.</p>
+                <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground animate-pulse">
+                  <div className="relative">
+                    <Loader2 className="h-16 w-16 animate-spin text-accent mb-6" />
+                    <div className="absolute inset-0 bg-accent/20 blur-xl rounded-full"></div>
+                  </div>
+                  <p className="text-xl font-medium text-foreground">Analyzing Content...</p>
+                  <p className="text-sm mt-2">Checking for steganography patterns. This may take up to 30 seconds.</p>
                 </div>
               )}
               {!isLoading && !result && (
-                  <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground pt-16">
-                    <FileSearchIcon className="h-12 w-12 mb-4" />
-                    <p className="text-lg font-medium">Awaiting analysis</p>
-                    <p>Results will be displayed here once a scan is complete.</p>
+                <div className="flex flex-col items-center justify-center flex-1 text-center text-muted-foreground/60">
+                  <div className="bg-accent/5 p-6 rounded-full mb-6 border border-accent/10">
+                    <FileSearchIcon className="h-16 w-16 text-accent/50" />
                   </div>
+                  <h3 className="text-xl font-medium text-foreground mb-2">Ready to Scan</h3>
+                  <p className="max-w-xs mx-auto">Results will appear here immediately after analysis is complete.</p>
+                </div>
               )}
               {result && (
-                <div className="space-y-4 animate-in fade-in-50">
-                   <div className="flex items-center justify-between">
-                     <h3 className="text-xl font-semibold">Summary</h3>
-                     <Badge className={severityStyles[result.severity]}>
-                       {result.severity.replace('-', ' ')}
-                     </Badge>
-                   </div>
-                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    {getIconForType(result.type)}
-                    <span>{result.type} Analysis</span>
-                    <span className="text-border">|</span>
-                    <span>{new Date(result.timestamp).toLocaleString()}</span>
-                   </div>
+                <div className="space-y-6 animate-in fade-in-50 slide-in-from-bottom-5 duration-500">
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-background/40 border border-border/50">
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">Status</h3>
+                      <Badge className={cn("text-base px-3 py-1", severityStyles[result.severity])}>
+                        {result.severity.replace('-', ' ')}
+                      </Badge>
+                    </div>
+                    <div className="text-right">
+                      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">Type</h3>
+                      <div className="flex items-center justify-end gap-2 text-foreground font-medium">
+                        {getIconForType(result.type)}
+                        <span>{result.type}</span>
+                      </div>
+                    </div>
+                  </div>
 
-                  <p className="text-foreground/90 bg-secondary/50 p-4 rounded-md border">{result.summary}</p>
-                  
-                  <div>
-                    <h4 className="font-semibold mb-2">Raw Findings</h4>
-                    <p className="text-sm text-muted-foreground p-4 rounded-md border font-mono bg-muted/30 break-words">{result.rawFindings}</p>
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-foreground flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-accent" />
+                      Analysis Summary
+                    </h4>
+                    <div className="text-foreground/90 bg-accent/5 p-4 rounded-lg border border-accent/10 leading-relaxed shadow-sm">
+                      {result.summary}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-foreground flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-accent" />
+                      Raw Findings
+                    </h4>
+                    <div className="relative group">
+                      <FindingsTable data={result.rawFindings} />
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-muted-foreground text-center pt-4 border-t border-border/40">
+                    Scan Timestamp: {new Date(result.timestamp).toLocaleString()}
                   </div>
                 </div>
               )}
@@ -341,7 +403,6 @@ export default function ScanPageClient() {
     </div>
   );
 }
-
 function FileSearchIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg

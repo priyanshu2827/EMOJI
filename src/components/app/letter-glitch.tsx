@@ -21,9 +21,9 @@ type Letter = {
 };
 
 type RgbColor = {
-    r: number;
-    g: number;
-    b: number;
+  r: number;
+  g: number;
+  b: number;
 };
 
 
@@ -66,10 +66,10 @@ const LetterGlitch = ({
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result
       ? {
-          r: parseInt(result[1], 16),
-          g: parseInt(result[2], 16),
-          b: parseInt(result[3], 16)
-        }
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      }
       : null;
   };
 
@@ -135,7 +135,7 @@ const LetterGlitch = ({
       }
     }
   };
-  
+
   const resizeCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -211,7 +211,7 @@ const LetterGlitch = ({
     const handleResize = () => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
-        if(animationRef.current) cancelAnimationFrame(animationRef.current);
+        if (animationRef.current) cancelAnimationFrame(animationRef.current);
         resizeCanvas();
         animate();
       }, 100);
@@ -220,7 +220,7 @@ const LetterGlitch = ({
     window.addEventListener('resize', handleResize);
 
     return () => {
-      if(animationRef.current) cancelAnimationFrame(animationRef.current);
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
       window.removeEventListener('resize', handleResize);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -231,7 +231,9 @@ const LetterGlitch = ({
     width: '100%',
     height: '100%',
     backgroundColor: '#000000',
-    overflow: 'hidden'
+    backgroundColor: '#000000',
+    overflow: 'hidden',
+    pointerEvents: 'none'
   };
 
   const canvasStyle: CSSProperties = {

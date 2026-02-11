@@ -15,11 +15,11 @@ export function exportToCsv(filename: string, rows: object[]) {
     keys.join(separator) +
     '\n' +
     rows
-      .map(row => {
+      .map((row: any) => {
         return keys
           .map(k => {
-            let cell = row[k as keyof typeof row] === null || row[k as keyof typeof row] === undefined ? '' : row[k as keyof typeof row];
-            
+            let cell = row[k] === null || row[k] === undefined ? '' : row[k];
+
             if (cell instanceof Date) {
               return cell.toLocaleString();
             }
@@ -33,7 +33,7 @@ export function exportToCsv(filename: string, rows: object[]) {
             if (cellString.includes(separator) || cellString.includes('"') || cellString.includes('\n')) {
               cellString = `"${cellString.replace(/"/g, '""')}"`;
             }
-            
+
             return cellString;
           })
           .join(separator);
