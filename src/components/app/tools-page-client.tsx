@@ -24,11 +24,11 @@ function Encoder() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (state?.error) {
+    if ((state as any)?.error) {
       toast({
         variant: 'destructive',
         title: 'Encoding Error',
-        description: state.error,
+        description: (state as any).error,
       });
     }
   }, [state, toast]);
@@ -51,14 +51,14 @@ function Encoder() {
           </div>
           <Button type="submit">Encode</Button>
         </form>
-        {state?.encoded && (
+        {(state as any)?.encoded && (
           <div className="mt-4">
             <Label>Encoded Output</Label>
             <Alert>
               <Terminal className="h-4 w-4" />
               <AlertTitle>Success!</AlertTitle>
               <AlertDescription className="mt-2 p-2 bg-muted rounded-md font-mono break-words text-sm">
-                {state.encoded}
+                {(state as any).encoded}
               </AlertDescription>
             </Alert>
           </div>
@@ -72,12 +72,12 @@ function Decoder() {
   const [state, formAction] = useActionState(decodeEmoji, null);
   const { toast } = useToast();
 
-   useEffect(() => {
-    if (state?.error) {
+  useEffect(() => {
+    if ((state as any)?.error) {
       toast({
         variant: 'destructive',
         title: 'Decoding Error',
-        description: state.error,
+        description: (state as any).error,
       });
     }
   }, [state, toast]);
@@ -100,15 +100,15 @@ function Decoder() {
           </div>
           <Button type="submit">Decode</Button>
         </form>
-        {state?.decoded && (
+        {(state as any)?.decoded && (
           <div className="mt-4">
             <Label>Decoded Message</Label>
-             <Alert>
-                <Terminal className="h-4 w-4" />
-                <AlertTitle>Success!</AlertTitle>
-                <AlertDescription className="mt-2 p-2 bg-muted rounded-md break-words">
-                  {state.decoded}
-                </AlertDescription>
+            <Alert>
+              <Terminal className="h-4 w-4" />
+              <AlertTitle>Success!</AlertTitle>
+              <AlertDescription className="mt-2 p-2 bg-muted rounded-md break-words">
+                {(state as any).decoded}
+              </AlertDescription>
             </Alert>
           </div>
         )}
@@ -120,14 +120,14 @@ function Decoder() {
 export default function EmojiEncodeClient() {
   return (
     <div className="container mx-auto p-4 md:p-8 relative z-10">
-       <div className="absolute inset-0 -z-10">
+      <div className="absolute inset-0 -z-10">
         <Hyperspeed effectOptions={hyperspeedPresets.one} />
       </div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight font-headline text-white">Steganography Tools</h1>
         <p className="text-muted-foreground">Encode and decode hidden messages using various techniques.</p>
       </div>
-      
+
       <Tabs defaultValue="emoji" className="w-full">
         <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-3 mb-8">
           <TabsTrigger value="emoji" className="flex items-center gap-2">
@@ -143,18 +143,18 @@ export default function EmojiEncodeClient() {
             Unicode Sanitizer
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="emoji">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             <Encoder />
             <Decoder />
           </div>
         </TabsContent>
-        
+
         <TabsContent value="zerowidth">
           <ZeroWidthTools />
         </TabsContent>
-        
+
         <TabsContent value="unicode">
           <UnicodeSanitizerTools />
         </TabsContent>

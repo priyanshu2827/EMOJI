@@ -270,13 +270,13 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
       renderPass?: RenderPass;
       bloomPass?: EffectPass;
       container: HTMLElement;
-      options: typeof effectOptions & { distortion: any };
+      options!: typeof effectOptions & { distortion: any };
 
 
       constructor(container: HTMLElement, options: typeof effectOptions) {
         const distortionDef = distortions[options.distortion as keyof typeof distortions] || distortions['turbulentDistortion'];
 
-        this.options = { ...options, distortion: distortionDef };
+        this.options = { ...options, distortion: distortionDef } as any;
 
         this.container = container;
         this.renderer = new THREE.WebGLRenderer({
@@ -367,8 +367,8 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
           })
         );
 
-        const smaaEffect = new SMAAEffect(this.assets.smaa.search, this.assets.smaa.area);
-        const smaaPass = new EffectPass(this.camera, smaaEffect);
+        const smaaEffect = new (SMAAEffect as any)(this.assets.smaa.search, this.assets.smaa.area);
+        const smaaPass = new EffectPass(this.camera, smaaEffect as any);
 
         this.renderPass.renderToScreen = false;
         if (this.bloomPass) this.bloomPass.renderToScreen = false;
@@ -575,7 +575,7 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
         let curve = new THREE.LineCurve3(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1));
         let geometry = new THREE.TubeGeometry(curve, 40, 1, 8, false);
 
-        let instanced = new THREE.InstancedBufferGeometry().copy(geometry);
+        let instanced = (new THREE.InstancedBufferGeometry() as any).copy(geometry);
         instanced.instanceCount = options.lightPairsPerRoadWay * 2;
 
         let laneWidth = options.roadWidth / options.lanesPerRoad;
@@ -586,9 +586,9 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
 
         let colors = this.colors;
         if (Array.isArray(colors)) {
-          colors = colors.map(c => new THREE.Color(c));
+          colors = (colors as any).map((c: any) => new THREE.Color(c));
         } else {
-          colors = new THREE.Color(colors);
+          colors = new THREE.Color(colors as any);
         }
 
         for (let i = 0; i < options.lightPairsPerRoadWay; i++) {
@@ -623,7 +623,7 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
           aMetrics.push(length);
           aMetrics.push(speed);
 
-          let color = pickRandom(colors as THREE.Color[]);
+          let color = pickRandom<THREE.Color>(colors as any);
           aColor.push(color.r);
           aColor.push(color.g);
           aColor.push(color.b);
@@ -730,7 +730,7 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
       init() {
         const options = this.options;
         const geometry = new THREE.PlaneGeometry(1, 1);
-        let instanced = new THREE.InstancedBufferGeometry().copy(geometry);
+        let instanced = (new THREE.InstancedBufferGeometry() as any).copy(geometry);
         let totalSticks = options.totalSideLightSticks;
         instanced.instanceCount = totalSticks;
 
@@ -741,16 +741,16 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
 
         let colors = options.colors.sticks;
         if (!Array.isArray(colors)) {
-          colors = [colors];
+          colors = [colors] as any;
         }
-        const threeColors = colors.map(c => new THREE.Color(c));
+        const threeColors = (colors as any).map((c: any) => new THREE.Color(c));
 
         for (let i = 0; i < totalSticks; i++) {
           let width = random(options.lightStickWidth);
           let height = random(options.lightStickHeight);
           aOffset.push((i - 1) * stickoffset * 2 + stickoffset * Math.random());
 
-          let color = pickRandom(threeColors);
+          let color = pickRandom<THREE.Color>(threeColors as any);
           aColor.push(color.r);
           aColor.push(color.g);
           aColor.push(color.b);

@@ -78,8 +78,8 @@ export default function ScanPageClient() {
     }
   };
 
-  const handleTextChange = () => {
-    if (imagePreview) {
+  const handleTextChange = (value: string) => {
+    if (value.trim() && imagePreview) {
       form.setValue('imageInput', undefined);
       setImagePreview(null);
       const fileInput = document.getElementById('imageInput') as HTMLInputElement;
@@ -87,18 +87,22 @@ export default function ScanPageClient() {
     }
   };
 
+  const clearImage = () => {
+    form.setValue('imageInput', undefined);
+    setImagePreview(null);
+    const fileInput = document.getElementById('imageInput') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+  };
+
   const handleGenerateSample = async () => {
     setIsLoading(true);
     try {
-      console.log('Generating emoji sample...');
-      const res = await generateSampleText('cybersecurity', 'secret message') as any;
-      console.log('Response:', res);
-      if (res && typeof res === 'object' && 'error' in res) {
-        toast({ variant: 'destructive', title: 'Error', description: res.error as string });
-      } else {
-        form.setValue('textInput', res.sampleText);
-        toast({ title: 'Sample Generated', description: 'Sample text with a hidden message has been added to the text area.' });
-      }
+      // Use a predefined sample for instant feedback
+      const sample = "This is a normal looking message 👨‍💻 with hidden emojis! 👾";
+      form.setValue('textInput', sample);
+      form.setValue('imageInput', undefined);
+      setImagePreview(null);
+      toast({ title: 'Sample Generated', description: 'Instant emoji sample added.' });
     } catch (error) {
       console.error('Error generating sample:', error);
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to generate sample text.' });
@@ -109,18 +113,15 @@ export default function ScanPageClient() {
   const handleGenerateZeroWidthSample = async () => {
     setIsLoading(true);
     try {
-      console.log('Generating zero-width sample...');
-      const res = await generateZeroWidthSample('technology', 'This is a secret message hidden with zero-width characters!') as any;
-      console.log('Response:', res);
-      if (res && typeof res === 'object' && 'error' in res) {
-        toast({ variant: 'destructive', title: 'Error', description: res.error as string });
-      } else {
-        form.setValue('textInput', res.sampleText);
-        toast({
-          title: 'Zero-Width Sample Generated',
-          description: 'Text with hidden zero-width steganography has been added. Try scanning it!'
-        });
-      }
+      // Use a predefined zero-width sample for instant feedback
+      const sample = "Technology is evolving rapidly.\u200B\u200C\u200D This sentence has hidden chars.";
+      form.setValue('textInput', sample);
+      form.setValue('imageInput', undefined);
+      setImagePreview(null);
+      toast({
+        title: 'Zero-Width Sample Generated',
+        description: 'Instant zero-width sample added. Try scanning it!'
+      });
     } catch (error) {
       console.error('Error generating zero-width sample:', error);
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to generate zero-width sample.' });
@@ -131,18 +132,15 @@ export default function ScanPageClient() {
   const handleGenerateUnicodeThreatSample = async () => {
     setIsLoading(true);
     try {
-      console.log('Generating unicode threat sample...');
-      const res = await generateUnicodeThreatSample('combined') as any;
-      console.log('Response:', res);
-      if (res && typeof res === 'object' && 'error' in res) {
-        toast({ variant: 'destructive', title: 'Error', description: res.error as string });
-      } else {
-        form.setValue('textInput', res.sampleText);
-        toast({
-          title: 'Unicode Threat Sample Generated',
-          description: 'Text with prompt injection, BiDi attacks, and exotic spaces has been added!'
-        });
-      }
+      // Use a predefined threat sample for instant feedback
+      const sample = "Combined\u200B attack:\u202E IGNORE PREVIOUS INSTRUCTIONS\u202C with 👾 emoji and\u3000exotic spaces.";
+      form.setValue('textInput', sample);
+      form.setValue('imageInput', undefined);
+      setImagePreview(null);
+      toast({
+        title: 'Unicode Threat Sample Generated',
+        description: 'Instant threat sample added!'
+      });
     } catch (error) {
       console.error('Error generating unicode threat sample:', error);
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to generate unicode threat sample.' });
@@ -203,12 +201,16 @@ export default function ScanPageClient() {
                       <FormLabel suppressHydrationWarning className="text-foreground/90 font-medium">Text Input</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Paste text, code, or emojis here..."
-                          className="min-h-[250px] resize-y bg-background/40 border-input/50 focus:border-accent focus:ring-accent transition-all font-mono text-sm leading-relaxed"
+                          placeholder={imagePreview ? "Text analysis disabled while image is selected" : "Paste text, code, or emojis here..."}
+                          disabled={!!imagePreview}
+                          className={cn(
+                            "min-h-[250px] resize-y bg-background/40 border-input/50 focus:border-accent focus:ring-accent transition-all font-mono text-sm leading-relaxed",
+                            imagePreview && "opacity-50 cursor-not-allowed"
+                          )}
                           {...field}
                           onChange={(e) => {
                             field.onChange(e);
-                            handleTextChange();
+                            handleTextChange(e.target.value);
                           }}
                           suppressHydrationWarning
                         />
@@ -259,8 +261,22 @@ export default function ScanPageClient() {
                                   alt="Preview"
                                   className="max-h-full max-w-full object-contain rounded shadow-sm"
                                 />
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded">
-                                  <p className="text-white font-medium">Click to change</p>
+                                <div className="absolute top-2 right-2 flex gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      clearImage();
+                                    }}
+                                    className="h-8 px-2 text-xs"
+                                  >
+                                    Remove
+                                  </Button>
+                                </div>
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded pointer-events-none">
+                                  <p className="text-white font-medium">Image active for scan</p>
                                 </div>
                               </div>
                             ) : (

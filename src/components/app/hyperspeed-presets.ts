@@ -1,8 +1,8 @@
 
 export const hyperspeedPresets = {
   one: {
-    onSpeedUp: () => {},
-    onSlowDown: () => {},
+    onSpeedUp: (ev?: any) => { },
+    onSlowDown: (ev?: any) => { },
     distortion: 'turbulentDistortion',
     length: 400,
     roadWidth: 10,
@@ -38,8 +38,8 @@ export const hyperspeedPresets = {
     }
   },
   two: {
-    onSpeedUp: () => {},
-    onSlowDown: () => {},
+    onSpeedUp: (ev?: any) => { },
+    onSlowDown: (ev?: any) => { },
     distortion: 'mountainDistortion',
     length: 400,
     roadWidth: 9,
@@ -76,8 +76,8 @@ export const hyperspeedPresets = {
     }
   },
   three: {
-    onSpeedUp: () => {},
-    onSlowDown: () => {},
+    onSpeedUp: (ev?: any) => { },
+    onSlowDown: (ev?: any) => { },
     distortion: 'xyDistortion',
     length: 400,
     roadWidth: 9,
@@ -113,8 +113,8 @@ export const hyperspeedPresets = {
     }
   },
   four: {
-    onSpeedUp: () => {},
-    onSlowDown: () => {},
+    onSpeedUp: (ev?: any) => { },
+    onSlowDown: (ev?: any) => { },
     distortion: 'LongRaceDistortion',
     length: 400,
     roadWidth: 10,
@@ -150,8 +150,8 @@ export const hyperspeedPresets = {
     }
   },
   five: {
-    onSpeedUp: () => {},
-    onSlowDown: () => {},
+    onSpeedUp: (ev?: any) => { },
+    onSlowDown: (ev?: any) => { },
     distortion: 'turbulentDistortion',
     length: 400,
     roadWidth: 9,
@@ -187,8 +187,8 @@ export const hyperspeedPresets = {
     }
   },
   six: {
-    onSpeedUp: () => {},
-    onSlowDown: () => {},
+    onSpeedUp: (ev?: any) => { },
+    onSlowDown: (ev?: any) => { },
     distortion: 'deepDistortion',
     length: 400,
     roadWidth: 18,

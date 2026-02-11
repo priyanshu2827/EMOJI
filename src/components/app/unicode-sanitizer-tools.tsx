@@ -23,18 +23,18 @@ function Sanitizer() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (state && 'error' in state) {
+    if (state && 'error' in (state as any)) {
       toast({
         variant: 'destructive',
         title: 'Sanitization Error',
-        description: state.error,
+        description: (state as any).error,
       });
     }
   }, [state, toast]);
 
   const handleCopy = async () => {
-    if (state && 'cleaned' in state) {
-      await navigator.clipboard.writeText(state.cleaned);
+    if (state && 'cleaned' in (state as any)) {
+      await navigator.clipboard.writeText((state as any).cleaned);
       setCopied(true);
       toast({ title: 'Copied!', description: 'Sanitized text copied to clipboard.' });
       setTimeout(() => setCopied(false), 2000);
@@ -55,7 +55,7 @@ function Sanitizer() {
           <input type="hidden" name="detectPromptInjection" value={detectPromptInjection.toString()} />
           <input type="hidden" name="stripHTML" value={stripHTML.toString()} />
           <input type="hidden" name="stripMarkdown" value={stripMarkdown.toString()} />
-          
+
           <div className="space-y-2">
             <Label htmlFor="text-to-sanitize">Text to Sanitize</Label>
             <Textarea
@@ -66,14 +66,14 @@ function Sanitizer() {
               required
             />
           </div>
-          
+
           <div className="space-y-3">
             <Label>Sanitization Options</Label>
             <div className="flex flex-col space-y-2">
               <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="allow-emoji" 
-                  checked={allowEmoji} 
+                <Checkbox
+                  id="allow-emoji"
+                  checked={allowEmoji}
                   onCheckedChange={(checked) => setAllowEmoji(checked as boolean)}
                 />
                 <label htmlFor="allow-emoji" className="text-sm cursor-pointer">
@@ -81,9 +81,9 @@ function Sanitizer() {
                 </label>
               </div>
               <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="detect-injection" 
-                  checked={detectPromptInjection} 
+                <Checkbox
+                  id="detect-injection"
+                  checked={detectPromptInjection}
                   onCheckedChange={(checked) => setDetectPromptInjection(checked as boolean)}
                 />
                 <label htmlFor="detect-injection" className="text-sm cursor-pointer">
@@ -92,25 +92,25 @@ function Sanitizer() {
               </div>
             </div>
           </div>
-          
+
           <Button type="submit" className="w-full">Sanitize Text</Button>
         </form>
-        
-        {state && 'cleaned' in state && (
+
+        {state && 'cleaned' in (state as any) && (
           <div className="mt-6 space-y-4">
             <Alert>
               <Terminal className="h-4 w-4" />
               <AlertTitle>Sanitization Complete</AlertTitle>
               <AlertDescription className="mt-2 p-2 bg-muted rounded-md font-mono break-words text-sm max-h-[200px] overflow-y-auto">
-                {state.cleaned || '(Empty after sanitization)'}
+                {(state as any).cleaned || '(Empty after sanitization)'}
               </AlertDescription>
             </Alert>
-            
-            {state.report && state.report.stats.issuesFound > 0 && (
+
+            {(state as any).report && (state as any).report.stats.issuesFound > 0 && (
               <div className="p-3 bg-muted rounded-md space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>Issues Found:</span>
-                  <Badge variant="destructive">{state.report.stats.issuesFound}</Badge>
+                  <Badge variant="destructive">{(state as any).report.stats.issuesFound}</Badge>
                 </div>
               </div>
             )}

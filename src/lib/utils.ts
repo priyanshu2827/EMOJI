@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function exportToCsv(filename: string, rows: object[]) {
+export function exportToCsv(filename: string, rows: any[]) {
   if (!rows || !rows.length) {
     return;
   }

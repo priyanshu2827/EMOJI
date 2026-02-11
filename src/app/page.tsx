@@ -7,14 +7,14 @@ import LetterGlitch from '@/components/app/letter-glitch';
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center text-center flex-1 relative bg-black">
+    <div className="flex flex-col items-center justify-center text-center min-h-screen flex-1 relative bg-black overflow-hidden">
       <div className="absolute inset-0 z-0">
-          <LetterGlitch 
-            glitchSpeed={50}
-            centerVignette={true}
-            outerVignette={true}
-            smooth={true}
-          />
+        <LetterGlitch
+          glitchSpeed={50}
+          centerVignette={false}
+          outerVignette={true}
+          smooth={true}
+        />
       </div>
       <div className="relative z-10 flex flex-col items-center justify-center h-full">
         <div className="relative mb-6">

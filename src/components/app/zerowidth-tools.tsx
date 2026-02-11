@@ -22,18 +22,18 @@ function Encoder() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (state?.error) {
+    if ((state as any)?.error) {
       toast({
         variant: 'destructive',
         title: 'Encoding Error',
-        description: state.error,
+        description: (state as any).error,
       });
     }
   }, [state, toast]);
 
   const handleCopy = async () => {
-    if (state?.encoded) {
-      await navigator.clipboard.writeText(state.encoded);
+    if ((state as any)?.encoded) {
+      await navigator.clipboard.writeText((state as any).encoded);
       setCopied(true);
       toast({ title: 'Copied!', description: 'Encoded text copied to clipboard.' });
       setTimeout(() => setCopied(false), 2000);
@@ -52,7 +52,7 @@ function Encoder() {
         <form action={formAction} className="space-y-4">
           <input type="hidden" name="position" value={position} />
           <input type="hidden" name="k" value={kValue} />
-          
+
           <div className="space-y-2">
             <Label htmlFor="source-text">Source Text (Container)</Label>
             <Textarea
@@ -63,7 +63,7 @@ function Encoder() {
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="secret-message">Secret Message</Label>
             <Textarea
@@ -74,7 +74,7 @@ function Encoder() {
               required
             />
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="position-select">Position</Label>
@@ -91,12 +91,12 @@ function Encoder() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             {(position === Position.RANDOM || position === Position.NTHLINES || position === Position.RANDOMINLINE) && (
               <div className="space-y-2">
                 <Label htmlFor="k-value">
-                  {position === Position.RANDOM ? 'Occurrences' : 
-                   position === Position.NTHLINES ? 'Every N Lines' : 'Every N Lines'}
+                  {position === Position.RANDOM ? 'Occurrences' :
+                    position === Position.NTHLINES ? 'Every N Lines' : 'Every N Lines'}
                 </Label>
                 <Input
                   id="k-value"
@@ -109,11 +109,11 @@ function Encoder() {
               </div>
             )}
           </div>
-          
+
           <Button type="submit" className="w-full">Encode Message</Button>
         </form>
-        
-        {state?.encoded && (
+
+        {(state as any)?.encoded && (
           <div className="mt-4 space-y-2">
             <div className="flex items-center justify-between">
               <Label>Encoded Output</Label>
@@ -131,7 +131,7 @@ function Encoder() {
               <Terminal className="h-4 w-4" />
               <AlertTitle>Success!</AlertTitle>
               <AlertDescription className="mt-2 p-2 bg-muted rounded-md font-mono break-words text-sm max-h-[200px] overflow-y-auto">
-                {state.encoded}
+                {(state as any).encoded}
               </AlertDescription>
             </Alert>
             <p className="text-xs text-muted-foreground">
@@ -149,11 +149,11 @@ function Decoder() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (state?.error) {
+    if ((state as any)?.error) {
       toast({
         variant: 'destructive',
         title: 'Decoding Error',
-        description: state.error,
+        description: (state as any).error,
       });
     }
   }, [state, toast]);
@@ -178,24 +178,24 @@ function Decoder() {
               required
             />
           </div>
-          
+
           <Button type="submit" className="w-full">Decode Message</Button>
         </form>
-        
-        {state?.decoded && (
+
+        {(state as any)?.decoded && (
           <div className="mt-4">
             <Label>Decoded Message</Label>
             <Alert>
               <Terminal className="h-4 w-4" />
               <AlertTitle>Message Found!</AlertTitle>
               <AlertDescription className="mt-2 p-2 bg-muted rounded-md break-words">
-                {state.decoded || '(No hidden message found)'}
+                {(state as any).decoded || '(No hidden message found)'}
               </AlertDescription>
             </Alert>
           </div>
         )}
-        
-        {state?.decoded === '' && (
+
+        {(state as any)?.decoded === '' && (
           <div className="mt-4">
             <Alert>
               <AlertTitle>No Hidden Message</AlertTitle>
@@ -216,18 +216,18 @@ function Cleaner() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (state?.error) {
+    if ((state as any)?.error) {
       toast({
         variant: 'destructive',
         title: 'Cleaning Error',
-        description: state.error,
+        description: (state as any).error,
       });
     }
   }, [state, toast]);
 
   const handleCopy = async () => {
-    if (state?.cleaned) {
-      await navigator.clipboard.writeText(state.cleaned);
+    if ((state as any)?.cleaned) {
+      await navigator.clipboard.writeText((state as any).cleaned);
       setCopied(true);
       toast({ title: 'Copied!', description: 'Cleaned text copied to clipboard.' });
       setTimeout(() => setCopied(false), 2000);
@@ -254,11 +254,11 @@ function Cleaner() {
               required
             />
           </div>
-          
+
           <Button type="submit" className="w-full">Clean Text</Button>
         </form>
-        
-        {state?.cleaned && (
+
+        {(state as any)?.cleaned && (
           <div className="mt-4 space-y-2">
             <div className="flex items-center justify-between">
               <Label>Cleaned Output</Label>
@@ -276,12 +276,12 @@ function Cleaner() {
               <Terminal className="h-4 w-4" />
               <AlertTitle>Cleaned Successfully!</AlertTitle>
               <AlertDescription className="mt-2 p-2 bg-muted rounded-md font-mono break-words text-sm max-h-[200px] overflow-y-auto">
-                {state.cleaned}
+                {(state as any).cleaned}
               </AlertDescription>
             </Alert>
-            {state.removedCount !== undefined && state.removedCount > 0 && (
+            {(state as any).removedCount !== undefined && (state as any).removedCount > 0 && (
               <p className="text-xs text-muted-foreground">
-                🧹 Removed {state.removedCount} hidden zero-width character(s)
+                Sweep away {(state as any).removedCount} hidden zero-width character(s)
               </p>
             )}
           </div>
