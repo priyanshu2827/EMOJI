@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -13,452 +12,325 @@ import {
   Fingerprint,
   BarChart3,
   Code,
-  Type
+  Type,
+  Info,
+  Terminal as TerminalIcon,
+  Search,
+  CheckCircle2
 } from 'lucide-react';
-import Hyperspeed from './hyperspeed';
+import dynamic from 'next/dynamic';
+const Hyperspeed = dynamic(() => import('./hyperspeed'), { ssr: false });
 import { hyperspeedPresets } from './hyperspeed-presets';
+import SpotlightCard from './spotlight-card';
+import { CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+
+function ReportHeader({ title, icon: Icon, badge, colorClass }: { title: string, icon: any, badge?: string, colorClass: string }) {
+  return (
+    <div className="p-6 border-b border-white/5 bg-white/5 flex justify-between items-center">
+      <div>
+        <div className={cn("flex items-center gap-2 mb-1 font-mono text-[10px] tracking-widest uppercase", colorClass)}>
+          <Icon size={12} />
+          <span>Forensic Methodology</span>
+        </div>
+        <h3 className="text-xl font-bold tracking-tight">{title}</h3>
+      </div>
+      {badge && (
+        <Badge variant="outline" className={cn("bg-white/5 border-white/10 font-mono text-[10px] py-1", colorClass)}>
+          {badge}
+        </Badge>
+      )}
+    </div>
+  );
+}
 
 function ZeroWidthSection() {
   return (
-    <div className="space-y-6">
-      <Card className="bg-card/80 backdrop-blur-sm border-primary/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <EyeOff className="h-5 w-5 text-primary" />
-            What are Zero-Width Characters?
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            Zero-width characters are invisible Unicode characters that take up no visual space but exist in the text.
-            They can be used to hide secret messages, fingerprint text, or bypass content filters.
-          </p>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card className="bg-muted/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Characters We Detect</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex justify-between items-center">
-                    <code className="bg-background px-2 py-1 rounded">U+200B</code>
-                    <span className="text-muted-foreground">Zero Width Space (ZWS)</span>
-                  </li>
-                  <li className="flex justify-between items-center">
-                    <code className="bg-background px-2 py-1 rounded">U+200C</code>
-                    <span className="text-muted-foreground">Zero Width Non-Joiner (ZWNJ)</span>
-                  </li>
-                  <li className="flex justify-between items-center">
-                    <code className="bg-background px-2 py-1 rounded">U+200D</code>
-                    <span className="text-muted-foreground">Zero Width Joiner (ZWJ)</span>
-                  </li>
-                  <li className="flex justify-between items-center">
-                    <code className="bg-background px-2 py-1 rounded">U+FEFF</code>
-                    <span className="text-muted-foreground">Byte Order Mark (BOM)</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-muted/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Detection Method</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm text-muted-foreground">
-                <p>Our scanner iterates through each character and checks against a predefined set of zero-width Unicode code points.</p>
-                <p>When found, we report their positions and count, allowing you to identify potential hidden data or fingerprinting.</p>
-              </CardContent>
-            </Card>
+    <div className="space-y-6 animate-in fade-in duration-700">
+      <SpotlightCard className="p-0 border-white/5 overflow-hidden bg-neutral-900/40 backdrop-blur-2xl">
+        <ReportHeader title="Zero-Width Character Analysis" icon={EyeOff} badge="Protocol: ZW-10" colorClass="text-emerald-400" />
+        <CardContent className="p-6 space-y-8">
+          <div className="flex flex-col md:flex-row gap-8">
+            <div className="flex-1 space-y-4">
+              <div className="flex items-center gap-2 text-[10px] font-mono text-neutral-500 uppercase tracking-widest">
+                <Info size={12} />
+                <span>Detection Vector</span>
+              </div>
+              <p className="text-sm text-neutral-300 leading-relaxed font-medium">
+                Zero-width characters are invisible Unicode entities that occupy no visual space but reside within the byte-stream.
+                Our engine performs a multi-pass sweep to identify non-printing code points used for data masking.
+              </p>
+            </div>
+            <div className="flex-1">
+              <div className="grid grid-cols-2 gap-3 text-[10px] font-mono">
+                {[
+                  { code: 'U+200B', label: 'ZW-SPACE' },
+                  { code: 'U+200C', label: 'ZW-NON-JOINER' },
+                  { code: 'U+200D', label: 'ZW-JOINER' },
+                  { code: 'U+FEFF', label: 'BYTE-ORDER-MARK' }
+                ].map((item) => (
+                  <div key={item.code} className="p-3 bg-black/40 border border-white/5 rounded-xl flex flex-col gap-1">
+                    <span className="text-neutral-500">{item.label}</span>
+                    <span className="text-emerald-400 font-bold">{item.code}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
-          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-            <h4 className="font-medium text-destructive flex items-center gap-2 mb-2">
-              <AlertTriangle className="h-4 w-4" />
-              Security Risk
-            </h4>
-            <p className="text-sm text-muted-foreground">
-              Zero-width steganography can embed hidden watermarks to track document leaks, hide malicious payloads,
-              or encode messages that evade keyword-based security filters.
-            </p>
+          <div className="p-4 bg-rose-500/5 border border-rose-500/20 rounded-2xl flex gap-4 items-start">
+            <div className="p-2 bg-rose-500/10 rounded-xl text-rose-500">
+              <AlertTriangle size={18} />
+            </div>
+            <div>
+              <h4 className="text-[10px] font-mono font-bold text-rose-400 uppercase tracking-widest mb-1 text-glow-rose">Security Implications</h4>
+              <p className="text-xs text-neutral-400 leading-relaxed uppercase tracking-tighter">
+                Adversaries utilize zero-width steganography to embed hidden watermarks for internal leak tracking or to hide command-and-control payloads within sanitised text streams.
+              </p>
+            </div>
           </div>
         </CardContent>
-      </Card>
+      </SpotlightCard>
     </div>
   );
 }
 
 function EntropySection() {
   return (
-    <div className="space-y-6">
-      <Card className="bg-card/80 backdrop-blur-sm border-primary/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-primary" />
-            Shannon Entropy Analysis
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            Shannon entropy measures the randomness or unpredictability in text. Natural language has predictable patterns,
-            while hidden data or encrypted content typically shows higher entropy.
+    <div className="space-y-6 animate-in fade-in duration-700">
+      <SpotlightCard className="p-0 border-white/5 overflow-hidden bg-neutral-900/40 backdrop-blur-2xl">
+        <ReportHeader title="Shannon Entropy Telemetry" icon={BarChart3} badge="Accuracy: 99.8%" colorClass="text-amber-400" />
+        <CardContent className="p-6 space-y-8">
+          <p className="text-sm text-neutral-300 leading-relaxed font-medium">
+            Entropy measures the unpredictability of informational content. High entropy in textual data often indicates
+            the presence of encrypted or encoded payloads that deviate from natural language frequency distributions.
           </p>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card className="bg-green-500/10 border-green-500/20">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-green-400">Low Entropy (0-3)</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                Repetitive text, simple patterns. Generally safe and normal.
-              </CardContent>
-            </Card>
-
-            <Card className="bg-yellow-500/10 border-yellow-500/20">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-yellow-400">Medium Entropy (3-4.5)</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                Normal natural language. Expected range for regular text content.
-              </CardContent>
-            </Card>
-
-            <Card className="bg-red-500/10 border-red-500/20">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-red-400">High Entropy (4.5+)</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                Random or encoded data. May indicate hidden content or encryption.
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono">
+            {[
+              { range: '0.0 - 3.0', label: 'NOMINAL', color: 'text-emerald-400', bg: 'bg-emerald-500/5', border: 'border-emerald-500/20' },
+              { range: '3.0 - 4.5', label: 'NATURAL', color: 'text-neutral-400', bg: 'bg-white/5', border: 'border-white/5' },
+              { range: '4.5 - 8.0', label: 'ANOMALOUS', color: 'text-rose-400', bg: 'bg-rose-500/5', border: 'border-rose-500/20' }
+            ].map((item) => (
+              <div key={item.label} className={cn("p-6 rounded-3xl border flex flex-col gap-2", item.bg, item.border)}>
+                <span className="text-[10px] uppercase tracking-widest opacity-50">{item.label}</span>
+                <span className={cn("text-2xl font-black italic tracking-tighter", item.color)}>{item.range}</span>
+              </div>
+            ))}
           </div>
 
-          <Card className="bg-muted/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Code className="h-4 w-4" />
-                How We Calculate
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground space-y-2">
-              <p>We use the Shannon entropy formula:</p>
-              <code className="block bg-background p-3 rounded text-xs font-mono">
-                H(X) = -Σ p(x) × log₂(p(x))
-              </code>
-              <p>Where p(x) is the probability of each unique character appearing in the text.</p>
-            </CardContent>
-          </Card>
+          <div className="p-4 bg-black/40 border border-white/10 rounded-2xl">
+            <div className="flex items-center gap-2 mb-3">
+              <Code size={14} className="text-amber-400" />
+              <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">Mathematical Basis</span>
+            </div>
+            <code className="block p-4 bg-black/60 rounded-xl text-xs font-mono text-amber-500 text-glow-amber">
+              H(X) = -Σ p(x) × log₂(p(x))
+            </code>
+          </div>
         </CardContent>
-      </Card>
+      </SpotlightCard>
     </div>
   );
 }
 
 function HomoglyphSection() {
   return (
-    <div className="space-y-6">
-      <Card className="bg-card/80 backdrop-blur-sm border-primary/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Type className="h-5 w-5 text-primary" />
-            Homoglyph Detection
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            Homoglyphs are characters from different scripts that look identical or very similar to common ASCII characters.
-            They are often used in phishing attacks, spoofing URLs, or bypassing content filters.
+    <div className="space-y-6 animate-in fade-in duration-700">
+      <SpotlightCard className="p-0 border-white/5 overflow-hidden bg-neutral-900/40 backdrop-blur-2xl">
+        <ReportHeader title="Homoglyph Visual Validation" icon={Type} badge="Module: V-SCAN" colorClass="text-emerald-400" />
+        <CardContent className="p-6 space-y-8">
+          <p className="text-sm text-neutral-300 leading-relaxed font-medium">
+            Homoglyph attacks exploit the visual similarity between characters from different script blocks (e.g., Cyrillic 'а' vs Latin 'a').
+            Our analyzer cross-references Unicode code points against expected script domains to identify spoofed identifiers.
           </p>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card className="bg-muted/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Common Homoglyph Pairs</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-4 p-2 bg-background rounded">
-                    <span className="font-mono text-lg">а</span>
-                    <span className="text-muted-foreground">→</span>
-                    <span className="font-mono text-lg">a</span>
-                    <Badge variant="outline" className="ml-auto">Cyrillic</Badge>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">Identified Clusters</div>
+              {[
+                { char: 'а', target: 'a', block: 'CYRILLIC' },
+                { char: 'е', target: 'e', block: 'CYRILLIC' },
+                { char: 'о', target: 'o', block: 'CYRILLIC' },
+                { char: 'Ι', target: 'I', block: 'GREEK' }
+              ].map((item, i) => (
+                <div key={i} className="flex items-center justify-between p-3 bg-black/40 border border-white/5 rounded-xl">
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl font-black text-emerald-400">{item.char}</span>
+                    <ArrowRight size={12} className="text-neutral-700" />
+                    <span className="text-2xl font-black text-neutral-300">{item.target}</span>
                   </div>
-                  <div className="flex items-center gap-4 p-2 bg-background rounded">
-                    <span className="font-mono text-lg">е</span>
-                    <span className="text-muted-foreground">→</span>
-                    <span className="font-mono text-lg">e</span>
-                    <Badge variant="outline" className="ml-auto">Cyrillic</Badge>
-                  </div>
-                  <div className="flex items-center gap-4 p-2 bg-background rounded">
-                    <span className="font-mono text-lg">о</span>
-                    <span className="text-muted-foreground">→</span>
-                    <span className="font-mono text-lg">o</span>
-                    <Badge variant="outline" className="ml-auto">Cyrillic</Badge>
-                  </div>
-                  <div className="flex items-center gap-4 p-2 bg-background rounded">
-                    <span className="font-mono text-lg">Ι</span>
-                    <span className="text-muted-foreground">→</span>
-                    <span className="font-mono text-lg">I</span>
-                    <Badge variant="outline" className="ml-auto">Greek</Badge>
-                  </div>
+                  <Badge variant="outline" className="font-mono text-[9px] uppercase border-white/10">{item.block}</Badge>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-muted/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Attack Scenarios</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-muted-foreground">
-                <div className="p-2 bg-background rounded">
-                  <span className="font-medium text-foreground">URL Spoofing:</span>
-                  <p>аpple.com vs apple.com</p>
+              ))}
+            </div>
+            <div className="space-y-4">
+              <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">Attack Vectors</div>
+              <div className="space-y-3 font-mono text-[10px]">
+                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                  <div className="text-emerald-400 mb-1 tracking-widest">DOMAIN SPOOFING</div>
+                  <p className="text-neutral-500">Impersonating critical infrastructure URIs using lookalike characters.</p>
                 </div>
-                <div className="p-2 bg-background rounded">
-                  <span className="font-medium text-foreground">Filter Bypass:</span>
-                  <p>Using lookalikes to evade keyword blocks</p>
+                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                  <div className="text-emerald-400 mb-1 tracking-widest">FILTER EVASION</div>
+                  <p className="text-neutral-500">Injecting homoglyphs to bypass keyword-based intrusion detection.</p>
                 </div>
-                <div className="p-2 bg-background rounded">
-                  <span className="font-medium text-foreground">Identity Spoofing:</span>
-                  <p>Impersonating usernames or brands</p>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </CardContent>
-      </Card>
+      </SpotlightCard>
     </div>
   );
 }
 
 function UnicodeThreatSection() {
   return (
-    <div className="space-y-6">
-      <Card className="bg-card/80 backdrop-blur-sm border-primary/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-primary" />
-            Unicode Threat Detection
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            Beyond zero-width characters, Unicode contains many other characters that can be exploited for malicious purposes.
-            Our scanner detects multiple categories of Unicode-based threats.
-          </p>
+    <div className="space-y-6 animate-in fade-in duration-700">
+      <SpotlightCard className="p-0 border-white/5 overflow-hidden bg-neutral-900/40 backdrop-blur-2xl">
+        <ReportHeader title="Extended Unicode Analysis" icon={Shield} badge="Security V4.2" colorClass="text-rose-400" />
+        <CardContent className="p-6 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <SpotlightCard className="p-6 bg-rose-500/5 border-rose-500/10">
+              <div className="flex items-center gap-2 mb-4">
+                <Badge variant="destructive" className="bg-rose-500/20 text-rose-400 rounded-sm">CRITICAL</Badge>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-rose-400">BIDI-OVERRIDE</span>
+              </div>
+              <p className="text-xs text-neutral-400 leading-relaxed uppercase tracking-tighter mb-4">
+                Bidirectional characters like U+202E reverse text layout, enabling file extension spoofing (e.g., harmless.exe becomes exe.sselmlah).
+              </p>
+              <div className="p-3 bg-black/40 rounded-xl font-mono text-[10px] text-rose-300 border border-rose-500/20">
+                THREAT_SIGNATURE: U+202E [RLO]
+              </div>
+            </SpotlightCard>
 
-          <div className="space-y-4">
-            <Card className="bg-muted/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Badge variant="destructive">High Risk</Badge>
-                  Bidirectional Override Characters
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                <p className="mb-2">Characters like U+202E (Right-to-Left Override) can reverse text display, hiding malicious content:</p>
-                <code className="block bg-background p-2 rounded text-xs">
-                  "harmless.exe" displays as "exe.sselmlah"
-                </code>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-muted/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Badge variant="secondary">Medium Risk</Badge>
-                  Exotic Space Characters
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                <ul className="space-y-1">
-                  <li><code className="bg-background px-1 rounded">U+00A0</code> - Non-Breaking Space</li>
-                  <li><code className="bg-background px-1 rounded">U+2000-U+200A</code> - Various Width Spaces</li>
-                  <li><code className="bg-background px-1 rounded">U+3000</code> - Ideographic Space</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-muted/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Badge variant="destructive">Critical</Badge>
-                  Prompt Injection Patterns
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                <p className="mb-2">We detect text patterns commonly used to manipulate AI systems:</p>
-                <ul className="space-y-1 list-disc list-inside">
-                  <li>"IGNORE ALL PREVIOUS INSTRUCTIONS"</li>
-                  <li>"Disregard the above"</li>
-                  <li>"You are now..."</li>
-                  <li>System prompt extraction attempts</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-muted/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Badge variant="outline">Info</Badge>
-                  Variation Selectors
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                <p>U+FE00 to U+FE0F modify the appearance of preceding characters. While often legitimate (like emoji presentation),
-                  excessive use can indicate data hiding or fingerprinting.</p>
-              </CardContent>
-            </Card>
+            <SpotlightCard className="p-6 bg-amber-500/5 border-amber-500/10">
+              <div className="flex items-center gap-2 mb-4">
+                <Badge variant="outline" className="border-amber-500/20 text-amber-400 rounded-sm uppercase font-mono text-[10px]">Warning</Badge>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400">Exotic Whitespace</span>
+              </div>
+              <p className="text-xs text-neutral-400 leading-relaxed uppercase tracking-tighter mb-4">
+                Non-standard spaces (U+00A0, U+2000-U+200A) are used as timing side-channels or to evade simple regex sanitization.
+              </p>
+              <div className="p-3 bg-black/40 rounded-xl font-mono text-[10px] text-amber-300 border border-amber-500/20">
+                ANOMALY_INDEX: HIGH_ENTROPY_SPACING
+              </div>
+            </SpotlightCard>
           </div>
         </CardContent>
-      </Card>
+      </SpotlightCard>
     </div>
   );
 }
 
 function EmojiSection() {
   return (
-    <div className="space-y-6">
-      <Card className="bg-card/80 backdrop-blur-sm border-primary/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Fingerprint className="h-5 w-5 text-primary" />
-            Emoji Steganography
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            Emojis can hide secret messages by encoding data in the selection and sequence of emoji characters.
-            Our scanner analyzes emoji patterns for suspicious encoding.
-          </p>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card className="bg-muted/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Detection Methods</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm text-muted-foreground">
-                <div className="p-2 bg-background rounded">
-                  <span className="font-medium text-foreground">Pattern Analysis:</span>
-                  <p>Detecting unnatural emoji sequences</p>
+    <div className="space-y-6 animate-in fade-in duration-700">
+      <SpotlightCard className="p-0 border-white/5 overflow-hidden bg-neutral-900/40 backdrop-blur-2xl">
+        <ReportHeader title="Emoji-Linked Steganography" icon={Fingerprint} badge="Protocol: EM-GUARD" colorClass="text-emerald-400" />
+        <CardContent className="p-6 space-y-8">
+          <div className="flex flex-col md:flex-row gap-8">
+            <div className="flex-1 space-y-4">
+              <p className="text-sm text-neutral-300 leading-relaxed font-medium">
+                Emoji encodings hide data by mapping bit-patterns to specific emoji sequences or ZWJ (Zero Width Joiner) combinations.
+                Our scanner detects unnatural emoji density and structural anomalies in multi-part emoji symbols.
+              </p>
+              <div className="grid grid-cols-1 gap-2">
+                {['Density-to-Text Ratio Analysis', 'Structural ZWJ Validation', 'Skin Tone Variation Sequencing'].map((t) => (
+                  <div key={t} className="flex items-center gap-3 p-3 bg-white/5 border border-white/5 rounded-xl font-mono text-[10px] uppercase text-neutral-500">
+                    <CheckCircle2 size={12} className="text-emerald-500" />
+                    {t}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex-1">
+              <div className="p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-3xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <Fingerprint size={80} />
                 </div>
-                <div className="p-2 bg-background rounded">
-                  <span className="font-medium text-foreground">Density Check:</span>
-                  <p>Flagging unusually high emoji-to-text ratios</p>
-                </div>
-                <div className="p-2 bg-background rounded">
-                  <span className="font-medium text-foreground">ZWJ Sequences:</span>
-                  <p>Analyzing Zero Width Joiner in emoji combinations</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-muted/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Encoding Techniques</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm text-muted-foreground">
-                <p>Emoji steganography tools can:</p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>Map binary data to emoji selections</li>
-                  <li>Use variation selectors between emojis</li>
-                  <li>Encode in skin tone modifiers</li>
-                  <li>Hide data in ZWJ sequences</li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
-            <h4 className="font-medium flex items-center gap-2 mb-2">
-              <Binary className="h-4 w-4" />
-              How EmojiEncode Works
-            </h4>
-            <p className="text-sm text-muted-foreground">
-              Our EmojiEncode tool converts text to binary, then maps each bit pattern to a specific emoji.
-              The decoder reverses this process by analyzing the emoji sequence and extracting the hidden binary data.
-            </p>
+                <h4 className="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest mb-3">Engine Mechanics</h4>
+                <p className="text-xs text-neutral-400 leading-relaxed uppercase tracking-tighter">
+                  EmojiEncode technology decomposes payloads into binary packets, which are then cross-referenced against a dynamic emoji lookup-table during both sanitisation and extraction phases.
+                </p>
+              </div>
+            </div>
           </div>
         </CardContent>
-      </Card>
+      </SpotlightCard>
     </div>
   );
 }
 
 function ImageSection() {
   return (
-    <div className="space-y-6">
-      <Card className="bg-card/80 backdrop-blur-sm border-primary/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Binary className="h-5 w-5 text-primary" />
-            Image LSB Analysis
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            Least Significant Bit (LSB) steganography hides data in the least important bits of image pixels.
-            Our scanner uses statistical analysis to detect this type of hidden content.
+    <div className="space-y-6 animate-in fade-in duration-700">
+      <SpotlightCard className="p-0 border-white/5 overflow-hidden bg-neutral-900/40 backdrop-blur-2xl">
+        <ReportHeader title="Image LSB Bitstream Analysis" icon={Binary} badge="Forensic V2" colorClass="text-emerald-400" />
+        <CardContent className="p-6 space-y-8">
+          <p className="text-sm text-neutral-300 leading-relaxed font-medium">
+            LSB steganography manipulates the least significant bits of pixel data to embed hidden packets. While visually imperceptible,
+            these modifications alter the statistical distribution of the lower bit-planes.
           </p>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card className="bg-muted/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">LSB Statistics</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm text-muted-foreground">
-                <p>We analyze the distribution of least significant bits:</p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>Natural images have ~50% ones/zeros</li>
-                  <li>Random data shows near-perfect 50/50 split</li>
-                  <li>Deviation from 0.5 ratio indicates modification</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-muted/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Entropy Score</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm text-muted-foreground">
-                <p>LSB entropy measures randomness in the bit plane:</p>
-                <ul className="space-y-1">
-                  <li><span className="text-green-400">{"< 0.9"}</span> - Likely natural</li>
-                  <li><span className="text-yellow-400">0.9-0.98</span> - Suspicious</li>
-                  <li><span className="text-red-400">{"> 0.98"}</span> - High probability of hidden data</li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="bg-muted/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Detection Indicators</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-2 md:grid-cols-2 text-sm">
-                <div className="p-2 bg-background rounded flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                  <span>Deviation {"<"} 0.03 + Entropy {">"} 0.98</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <div className="p-6 bg-black/40 border border-white/10 rounded-3xl space-y-4">
+              <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">Statistical Distribution</div>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[9px] font-mono text-neutral-600 uppercase">
+                    <span>Natural Variance</span>
+                    <span>~0.5</span>
+                  </div>
+                  <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-500/50 w-1/2" />
+                  </div>
                 </div>
-                <div className="p-2 bg-background rounded flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                  <span>Large image + Near-uniform LSB</span>
-                </div>
-                <div className="p-2 bg-background rounded flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                  <span>Unusual bit distribution patterns</span>
-                </div>
-                <div className="p-2 bg-background rounded flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <span>Natural variance in bit plane</span>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[9px] font-mono text-neutral-600 uppercase">
+                    <span>Anomalous Bias</span>
+                    <span>{'>'}0.98</span>
+                  </div>
+                  <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-rose-500/50 w-[98%]" />
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="grid grid-cols-1 gap-4">
+              <div className="p-4 bg-white/5 rounded-2xl border border-white/5 font-mono text-[9px]">
+                <div className="text-emerald-400 uppercase mb-1 tracking-widest">LSB ENTROPY ANALYSIS</div>
+                <p className="text-neutral-500">Calculating bit-plane randomness to detect non-natural data alignment.</p>
+              </div>
+              <div className="p-4 bg-white/5 rounded-2xl border border-white/5 font-mono text-[9px]">
+                <div className="text-emerald-400 uppercase mb-1 tracking-widest">HEURISTIC RS-DETECTION</div>
+                <p className="text-neutral-500">Analyzing the proportion of regular and singular groups in the image signal.</p>
+              </div>
+            </div>
+          </div>
         </CardContent>
-      </Card>
+      </SpotlightCard>
     </div>
+  );
+}
+
+function ArrowRight(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M5 12h14" />
+      <path d="m12 5 7 7-7 7" />
+    </svg>
   );
 }
 
@@ -469,82 +341,76 @@ export default function DetectionMethodsClient() {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return (
-      <div className="container mx-auto p-4 md:p-8 relative z-10 min-h-[60vh]">
-        <div className="mb-8 animate-pulse">
-          <div className="h-10 w-64 bg-muted rounded mb-2"></div>
-          <div className="h-4 w-96 bg-muted rounded"></div>
-        </div>
-      </div>
-    );
-  }
+  if (!mounted) return null;
 
   return (
-    <div className="container mx-auto p-4 md:p-8 relative z-10">
-      <div className="absolute inset-0 -z-10 overflow-hidden">
+    <div className="min-h-screen bg-black text-white selection:bg-emerald-500/30 overflow-x-hidden pt-24 pb-20">
+      {/* Background Effect */}
+      <div className="fixed inset-0 z-0">
         <Hyperspeed effectOptions={hyperspeedPresets.one} />
+        <div className="absolute inset-0 bg-black/60 pointer-events-none" />
       </div>
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight font-headline text-white">Detection Methods</h1>
-        <p className="text-muted-foreground">
-          Learn how INVISIFY identifies hidden content, steganography, and Unicode-based security threats.
-        </p>
+      <div className="container mx-auto px-4 relative z-10 max-w-6xl">
+        {/* Header Area */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div>
+            <div className="flex items-center gap-2 text-emerald-400 mb-2 font-mono text-xs tracking-widest uppercase">
+              <TerminalIcon size={14} />
+              <span>Intelligence Database // Repository</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-b from-white to-neutral-500 bg-clip-text text-transparent">
+              Detection Methods
+            </h1>
+          </div>
+        </div>
+
+        <Tabs defaultValue="zero-width" className="w-full">
+          <TabsList className="flex items-center justify-start gap-4 h-auto bg-transparent border-b border-white/5 rounded-none p-0 mb-10 overflow-x-auto pb-px scrollbar-none">
+            {[
+              { id: 'zero-width', label: 'Zero-Width', icon: EyeOff },
+              { id: 'entropy', label: 'Entropy', icon: BarChart3 },
+              { id: 'homoglyph', label: 'Homoglyphs', icon: Type },
+              { id: 'unicode', label: 'Unicode Threats', icon: Shield },
+              { id: 'emoji', label: 'Emoji Stego', icon: Fingerprint },
+              { id: 'image', label: 'Image LSB', icon: Binary },
+            ].map((tab) => (
+              <TabsTrigger
+                key={tab.id}
+                value={tab.id}
+                className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest py-4 border-b-2 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:bg-transparent data-[state=active]:text-emerald-400 text-neutral-500 bg-transparent rounded-none transition-all px-4"
+              >
+                <tab.icon size={14} />
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          <TabsContent value="zero-width" className="mt-0 outline-none">
+            <ZeroWidthSection />
+          </TabsContent>
+
+          <TabsContent value="entropy" className="mt-0 outline-none">
+            <EntropySection />
+          </TabsContent>
+
+          <TabsContent value="homoglyph" className="mt-0 outline-none">
+            <HomoglyphSection />
+          </TabsContent>
+
+          <TabsContent value="unicode" className="mt-0 outline-none">
+            <UnicodeThreatSection />
+          </TabsContent>
+
+          <TabsContent value="emoji" className="mt-0 outline-none">
+            <EmojiSection />
+          </TabsContent>
+
+          <TabsContent value="image" className="mt-0 outline-none">
+            <ImageSection />
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <Tabs defaultValue="zero-width" className="w-full">
-        <TabsList className="flex flex-wrap justify-start gap-2 h-auto bg-transparent mb-8">
-          <TabsTrigger value="zero-width" className="flex items-center gap-2 data-[state=active]:bg-primary/20">
-            <EyeOff className="h-4 w-4" />
-            Zero-Width
-          </TabsTrigger>
-          <TabsTrigger value="entropy" className="flex items-center gap-2 data-[state=active]:bg-primary/20">
-            <BarChart3 className="h-4 w-4" />
-            Entropy
-          </TabsTrigger>
-          <TabsTrigger value="homoglyph" className="flex items-center gap-2 data-[state=active]:bg-primary/20">
-            <Type className="h-4 w-4" />
-            Homoglyphs
-          </TabsTrigger>
-          <TabsTrigger value="unicode" className="flex items-center gap-2 data-[state=active]:bg-primary/20">
-            <Shield className="h-4 w-4" />
-            Unicode Threats
-          </TabsTrigger>
-          <TabsTrigger value="emoji" className="flex items-center gap-2 data-[state=active]:bg-primary/20">
-            <Fingerprint className="h-4 w-4" />
-            Emoji Stego
-          </TabsTrigger>
-          <TabsTrigger value="image" className="flex items-center gap-2 data-[state=active]:bg-primary/20">
-            <Binary className="h-4 w-4" />
-            Image LSB
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="zero-width">
-          <ZeroWidthSection />
-        </TabsContent>
-
-        <TabsContent value="entropy">
-          <EntropySection />
-        </TabsContent>
-
-        <TabsContent value="homoglyph">
-          <HomoglyphSection />
-        </TabsContent>
-
-        <TabsContent value="unicode">
-          <UnicodeThreatSection />
-        </TabsContent>
-
-        <TabsContent value="emoji">
-          <EmojiSection />
-        </TabsContent>
-
-        <TabsContent value="image">
-          <ImageSection />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 }

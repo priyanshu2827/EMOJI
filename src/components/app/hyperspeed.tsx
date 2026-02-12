@@ -364,46 +364,24 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
           new BloomEffect({
             luminanceThreshold: 0.2,
             luminanceSmoothing: 0,
-            resolutionScale: 1
+            resolutionScale: 0.5 // Lower resolution for better performance
           })
         );
 
-        const smaaEffect = new (SMAAEffect as any)(this.assets.smaa.search, this.assets.smaa.area);
-        const smaaPass = new EffectPass(this.camera, smaaEffect as any);
-
         this.renderPass.renderToScreen = false;
-        if (this.bloomPass) this.bloomPass.renderToScreen = false;
-        smaaPass.renderToScreen = true;
-        this.composer.addPass(this.renderPass);
-        if (this.bloomPass) this.composer.addPass(this.bloomPass);
-        this.composer.addPass(smaaPass);
+        if (this.bloomPass) {
+          this.bloomPass.renderToScreen = true;
+          this.composer.addPass(this.renderPass);
+          this.composer.addPass(this.bloomPass);
+        } else {
+          this.renderPass.renderToScreen = true;
+          this.composer.addPass(this.renderPass);
+        }
       }
 
       loadAssets() {
-        const assets = this.assets;
-        return new Promise<void>(resolve => {
-          const manager = new THREE.LoadingManager(() => resolve());
-
-          const searchImage = new Image();
-          const areaImage = new Image();
-          assets.smaa = {};
-
-          searchImage.addEventListener('load', function () {
-            assets.smaa.search = this;
-            manager.itemEnd('smaa-search');
-          });
-
-          areaImage.addEventListener('load', function () {
-            assets.smaa.area = this;
-            manager.itemEnd('smaa-area');
-          });
-
-          manager.itemStart('smaa-search');
-          manager.itemStart('smaa-area');
-
-          searchImage.src = SMAAEffect.searchImageDataURL;
-          areaImage.src = SMAAEffect.areaImageDataURL;
-        });
+        // Removed SMAA asset loading to improve performance
+        return Promise.resolve();
       }
 
       init() {
@@ -418,15 +396,17 @@ const Hyperspeed = ({ effectOptions: customOptions }: HyperspeedProps) => {
         this.leftSticks.init();
         this.leftSticks.mesh.position.setX(-(options.roadWidth + options.islandWidth / 2));
 
-        this.container.addEventListener('mousedown', this.onMouseDown);
-        this.container.addEventListener('mouseup', this.onMouseUp);
-        this.container.addEventListener('mouseout', this.onMouseUp);
+        if (this.container) {
+          this.container.addEventListener('mousedown', this.onMouseDown);
+          this.container.addEventListener('mouseup', this.onMouseUp);
+          this.container.addEventListener('mouseout', this.onMouseUp);
 
-        this.container.addEventListener('touchstart', this.onTouchStart, { passive: true });
-        this.container.addEventListener('touchend', this.onTouchEnd, { passive: true });
-        this.container.addEventListener('touchcancel', this.onTouchEnd, { passive: true });
+          this.container.addEventListener('touchstart', this.onTouchStart, { passive: true });
+          this.container.addEventListener('touchend', this.onTouchEnd, { passive: true });
+          this.container.addEventListener('touchcancel', this.onTouchEnd, { passive: true });
 
-        this.container.addEventListener('contextmenu', this.onContextMenu);
+          this.container.addEventListener('contextmenu', this.onContextMenu);
+        }
 
         this.tick();
       }

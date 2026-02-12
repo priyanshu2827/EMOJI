@@ -27,8 +27,10 @@ export async function analyzeContent(
     try {
         await sleep(1000); // Simulate processing time
 
+        console.log("[analyzeContent] Starting analysis...");
         const text = formData.get('textInput') as string | null;
         const imageFile = formData.get('imageInput') as File | null;
+        console.log(`[analyzeContent] Inputs: textLength=${text?.length || 0}, imageSize=${imageFile?.size || 0}`);
         const imageBuffer = imageFile && imageFile.size > 0 ? await imageFile.arrayBuffer() : null;
 
         if (!text && !imageBuffer) {
@@ -42,34 +44,26 @@ export async function analyzeContent(
             imagePixels,
             imageFile?.type
         );
-
-        const media_type = detection.type;
-        const rawFindings = detection.findings;
-        const score = detection.score;
-        const engineSeverity = detection.severity;
-
-        let severity: Severity = 'CLEAN';
-        if (engineSeverity === 'Critical' || engineSeverity === 'High') {
-            severity = 'HIGH-RISK';
-        } else if (engineSeverity === 'Medium' || engineSeverity === 'Low') {
-            severity = 'SUSPICIOUS';
-        }
+        console.log("[analyzeContent] Detection complete:", detection.severity, "Score:", detection.score);
 
         const summaryResult = await summarizeFindings({
-            findings: JSON.stringify(rawFindings, null, 2),
-            type: media_type,
-            severity: severity === 'HIGH-RISK' ? 'HIGH-RISK STEGANOGRAPHY DETECTED' : severity,
+            findings: JSON.stringify(detection.findings, null, 2),
+            type: detection.type,
+            severity: detection.severity,
         });
 
-        return {
+        const result: ScanResult = {
             id: randomUUID(),
             timestamp: new Date().toISOString(),
-            type: media_type,
-            severity: severity,
+            content_type: detection.type,
+            severity: detection.severity as Severity,
+            score: detection.score,
             summary: summaryResult.summary,
-            rawFindings: JSON.stringify(rawFindings, null, 2),
-            score: score
+            findings: JSON.stringify(detection.findings),
+            reasons: detection.reasons
         };
+
+        return result;
 
     } catch (e: any) {
         console.error("An unexpected error occurred in analyzeContent:", e);

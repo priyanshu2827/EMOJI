@@ -3,21 +3,22 @@
 import { useActionState, useEffect, useState } from 'react';
 import { decodeEmoji, encodeEmoji } from '@/lib/actions';
 
+import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Terminal, Smile, EyeOff } from 'lucide-react';
+import { Terminal, Smile, EyeOff, Shield, Binary, RefreshCw, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import Hyperspeed from './hyperspeed';
+import dynamic from 'next/dynamic';
+import { cn } from '@/lib/utils';
+const Hyperspeed = dynamic(() => import('./hyperspeed'), { ssr: false });
 import { hyperspeedPresets } from './hyperspeed-presets';
 import ZeroWidthTools from './zerowidth-tools';
 import UnicodeSanitizerTools from './unicode-sanitizer-tools';
-
+import SpotlightCard from './spotlight-card';
 
 function Encoder() {
   const [state, formAction] = useActionState(encodeEmoji, null);
@@ -34,37 +35,55 @@ function Encoder() {
   }, [state, toast]);
 
   return (
-    <Card className="bg-card/80 backdrop-blur-sm">
-      <CardHeader>
-        <CardTitle>EmojiEncoder</CardTitle>
-        <CardDescription>Hide a secret message within a block of emojis. Provide an optional password for encryption.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form action={formAction} className="space-y-4">
+    <SpotlightCard className="p-0 border-white/5 overflow-hidden bg-neutral-900/40 backdrop-blur-2xl h-full">
+      <div className="p-6 border-b border-white/5 bg-white/5">
+        <div className="flex items-center gap-2 text-emerald-400 mb-1 font-mono text-[10px] tracking-widest uppercase">
+          <Binary size={12} />
+          <span>Encoder Module</span>
+        </div>
+        <h3 className="text-xl font-bold tracking-tight">EmojiEncoder</h3>
+        <p className="text-xs text-neutral-500 mt-1 uppercase tracking-tighter">Steganographic Payload Initialization</p>
+      </div>
+      <CardContent className="p-6">
+        <form action={formAction} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="message">Secret Message</Label>
-            <Textarea id="message" name="message" placeholder="Your secret message..." required />
+            <Label htmlFor="message" className="text-[10px] font-mono uppercase text-neutral-500 tracking-wider">Secret Message</Label>
+            <Textarea
+              id="message"
+              name="message"
+              placeholder="Enter sensitive data for encapsulation..."
+              required
+              className="min-h-[120px] bg-black/40 border-white/10 focus:border-emerald-500/50 rounded-xl font-mono text-sm"
+            />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password-encode">Password (optional)</Label>
-            <Input id="password-encode" name="password" type="password" placeholder="Password to encrypt the message" />
+            <Label htmlFor="password-encode" className="text-[10px] font-mono uppercase text-neutral-500 tracking-wider">Encryption Key (Optional)</Label>
+            <Input
+              id="password-encode"
+              name="password"
+              type="password"
+              placeholder="AES-256 derived key..."
+              className="bg-black/40 border-white/10 focus:border-emerald-500/50 rounded-xl font-mono text-sm"
+            />
           </div>
-          <Button type="submit">Encode</Button>
+          <Button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-bold uppercase tracking-widest text-xs h-12 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.1)]">
+            Run Encryption Engine
+          </Button>
         </form>
+
         {(state as any)?.encoded && (
-          <div className="mt-4">
-            <Label>Encoded Output</Label>
-            <Alert>
-              <Terminal className="h-4 w-4" />
-              <AlertTitle>Success!</AlertTitle>
-              <AlertDescription className="mt-2 p-2 bg-muted rounded-md font-mono break-words text-sm">
-                {(state as any)?.encoded}
-              </AlertDescription>
-            </Alert>
+          <div className="mt-8 space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div className="flex items-center gap-2 text-[10px] font-mono text-emerald-400 uppercase tracking-widest">
+              <Shield size={10} />
+              <span>Output Stream Verified</span>
+            </div>
+            <div className="p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl font-mono text-sm break-words selection:bg-emerald-500/30">
+              {(state as any)?.encoded}
+            </div>
           </div>
         )}
       </CardContent>
-    </Card>
+    </SpotlightCard>
   );
 }
 
@@ -83,37 +102,55 @@ function Decoder() {
   }, [state, toast]);
 
   return (
-    <Card className="bg-card/80 backdrop-blur-sm">
-      <CardHeader>
-        <CardTitle>EmojiDecoder</CardTitle>
-        <CardDescription>Extract a secret message from a block of emojis. Provide the password if it was encrypted.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form action={formAction} className="space-y-4">
+    <SpotlightCard className="p-0 border-white/5 overflow-hidden bg-neutral-900/40 backdrop-blur-2xl h-full">
+      <div className="p-6 border-b border-white/5 bg-white/5">
+        <div className="flex items-center gap-2 text-amber-400 mb-1 font-mono text-[10px] tracking-widest uppercase">
+          <Terminal size={12} />
+          <span>Decoder Module</span>
+        </div>
+        <h3 className="text-xl font-bold tracking-tight">EmojiDecoder</h3>
+        <p className="text-xs text-neutral-500 mt-1 uppercase tracking-tighter">Payload Extraction & Verification</p>
+      </div>
+      <CardContent className="p-6">
+        <form action={formAction} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="encodedMessage">Encoded Message</Label>
-            <Textarea id="encodedMessage" name="encodedMessage" placeholder="Paste the emoji message here..." required />
+            <Label htmlFor="encodedMessage" className="text-[10px] font-mono uppercase text-neutral-500 tracking-wider">Encoded Input</Label>
+            <Textarea
+              id="encodedMessage"
+              name="encodedMessage"
+              placeholder="Paste steganographic emoji stream..."
+              required
+              className="min-h-[120px] bg-black/40 border-white/10 focus:border-amber-500/50 rounded-xl font-mono text-sm"
+            />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password-decode">Password</Label>
-            <Input id="password-decode" name="password" type="password" placeholder="Password used during encoding" />
+            <Label htmlFor="password-decode" className="text-[10px] font-mono uppercase text-neutral-500 tracking-wider">Decryption Key</Label>
+            <Input
+              id="password-decode"
+              name="password"
+              type="password"
+              placeholder="Enter key for extraction..."
+              className="bg-black/40 border-white/10 focus:border-amber-500/50 rounded-xl font-mono text-sm"
+            />
           </div>
-          <Button type="submit">Decode</Button>
+          <Button type="submit" className="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold uppercase tracking-widest text-xs h-12 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.1)]">
+            Execute Extraction
+          </Button>
         </form>
+
         {(state as any)?.decoded && (
-          <div className="mt-4">
-            <Label>Decoded Message</Label>
-            <Alert>
-              <Terminal className="h-4 w-4" />
-              <AlertTitle>Success!</AlertTitle>
-              <AlertDescription className="mt-2 p-2 bg-muted rounded-md break-words">
-                {(state as any)?.decoded}
-              </AlertDescription>
-            </Alert>
+          <div className="mt-8 space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div className="flex items-center gap-2 text-[10px] font-mono text-amber-400 uppercase tracking-widest">
+              <Info size={10} />
+              <span>Decrypted Data Found</span>
+            </div>
+            <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl font-mono text-sm break-words selection:bg-amber-500/30">
+              {(state as any)?.decoded}
+            </div>
           </div>
         )}
       </CardContent>
-    </Card>
+    </SpotlightCard>
   );
 }
 
@@ -124,58 +161,64 @@ export default function EmojiEncodeClient() {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return (
-      <div className="container mx-auto p-4 md:p-8 relative z-10 min-h-[60vh]">
-        <div className="mb-8 animate-pulse">
-          <div className="h-10 w-64 bg-muted rounded mb-2"></div>
-          <div className="h-4 w-96 bg-muted rounded"></div>
-        </div>
-      </div>
-    );
-  }
+  if (!mounted) return null;
 
   return (
-    <div className="container mx-auto p-4 md:p-8 relative z-10">
-      <div className="absolute inset-0 -z-10 overflow-hidden">
+    <div className="min-h-screen bg-black text-white selection:bg-emerald-500/30 overflow-x-hidden pt-24 pb-20">
+      {/* Background Effect */}
+      <div className="fixed inset-0 z-0">
         <Hyperspeed effectOptions={hyperspeedPresets.one} />
-      </div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight font-headline text-white">Steganography Tools</h1>
-        <p className="text-muted-foreground">Encode and decode hidden messages using various techniques.</p>
+        <div className="absolute inset-0 bg-black/60 pointer-events-none" />
       </div>
 
-      <Tabs defaultValue="emoji" className="w-full">
-        <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-3 mb-8">
-          <TabsTrigger value="emoji" className="flex items-center gap-2">
-            <Smile className="h-4 w-4" />
-            Emoji Tools
-          </TabsTrigger>
-          <TabsTrigger value="zerowidth" className="flex items-center gap-2">
-            <EyeOff className="h-4 w-4" />
-            Zero-Width
-          </TabsTrigger>
-          <TabsTrigger value="unicode" className="flex items-center gap-2">
-            <Terminal className="h-4 w-4" />
-            Unicode Sanitizer
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="emoji">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <Encoder />
-            <Decoder />
+      <div className="container mx-auto px-4 relative z-10 max-w-6xl">
+        {/* Header Area */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div>
+            <div className="flex items-center gap-2 text-emerald-400 mb-2 font-mono text-xs tracking-widest uppercase">
+              <Shield size={14} />
+              <span>Crypto Operations // Active</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-b from-white to-neutral-500 bg-clip-text text-transparent">
+              Forensic Tools
+            </h1>
           </div>
-        </TabsContent>
+        </div>
 
-        <TabsContent value="zerowidth">
-          <ZeroWidthTools />
-        </TabsContent>
+        <Tabs defaultValue="emoji" className="w-full">
+          <TabsList className="flex items-center justify-start gap-4 h-auto bg-transparent border-b border-white/5 rounded-none p-0 mb-10 overflow-x-auto pb-px scrollbar-none">
+            {[
+              { id: 'emoji', label: 'Emoji Stego', icon: Smile },
+              { id: 'zerowidth', label: 'Zero-Width', icon: EyeOff },
+              { id: 'unicode', label: 'Unicode Sanitize', icon: Terminal },
+            ].map((tab) => (
+              <TabsTrigger
+                key={tab.id}
+                value={tab.id}
+                className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest py-4 border-b-2 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:bg-transparent data-[state=active]:text-emerald-400 text-neutral-500 bg-transparent rounded-none transition-all px-4"
+              >
+                <tab.icon size={14} />
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-        <TabsContent value="unicode">
-          <UnicodeSanitizerTools />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="emoji" className="mt-0 outline-none">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+              <Encoder />
+              <Decoder />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="zerowidth" className="mt-0 outline-none">
+            <ZeroWidthTools />
+          </TabsContent>
+
+          <TabsContent value="unicode" className="mt-0 outline-none">
+            <UnicodeSanitizerTools />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }

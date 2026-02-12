@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { useLogStore } from '@/lib/store';
-import { exportToCsv } from '@/lib/utils';
+import { exportToCsv, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -24,10 +24,12 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ContentType, Severity } from '@/lib/types';
 import { DashboardTable } from './dashboard-table';
-import { Download, Filter, Trash2 } from 'lucide-react';
+import { Download, Filter, Trash2, History, Database, Search, LayoutGrid, List } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import Hyperspeed from './hyperspeed';
+import dynamic from 'next/dynamic';
+const Hyperspeed = dynamic(() => import('./hyperspeed'), { ssr: false });
 import { hyperspeedPresets } from './hyperspeed-presets';
+import SpotlightCard from './spotlight-card';
 
 export default function DashboardPageClient() {
   const [mounted, setMounted] = useState(false);
@@ -54,104 +56,157 @@ export default function DashboardPageClient() {
       toast({
         variant: 'destructive',
         title: 'Export Failed',
-        description: 'No logs to export.',
+        description: 'No data streams available for export.',
       });
       return;
     }
-    exportToCsv(`invisify-logs-${new Date().toISOString()}.csv`, filteredLogs);
+    exportToCsv(`invisify-forensics-${new Date().toISOString()}.csv`, filteredLogs);
     toast({
-      title: 'Export Successful',
-      description: 'Your logs have been downloaded as a CSV file.',
+      title: 'Export Complete',
+      description: 'Forensic data exported successfully.',
     });
   };
 
-  if (!mounted) {
-    return (
-      <div className="container mx-auto p-4 md:p-8 flex-1 flex flex-col relative z-10 min-h-[60vh]">
-        <div className="animate-pulse">
-          <div className="h-10 w-48 bg-muted rounded mb-2"></div>
-          <div className="h-4 w-64 bg-muted rounded mb-8"></div>
-          <div className="h-[400px] bg-muted/20 rounded-xl"></div>
-        </div>
-      </div>
-    );
-  }
+  if (!mounted) return null;
 
   return (
-    <div className="container mx-auto p-4 md:p-8 flex-1 flex flex-col relative z-10">
-      <div className="absolute inset-0 -z-10 overflow-hidden">
+    <div className="min-h-screen bg-black text-white selection:bg-emerald-500/30 overflow-x-hidden pt-24 pb-20">
+      {/* Background Effect */}
+      <div className="fixed inset-0 z-0">
         <Hyperspeed effectOptions={hyperspeedPresets.one} />
+        <div className="absolute inset-0 bg-black/60 pointer-events-none" />
       </div>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight font-headline text-white">Dashboard</h2>
-          <p className="text-muted-foreground">Review and manage your scan history.</p>
+
+      <div className="container mx-auto px-4 relative z-10 max-w-6xl">
+        {/* Header Area */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div>
+            <div className="flex items-center gap-2 text-blue-400 mb-2 font-mono text-xs tracking-widest uppercase">
+              <Database size={14} />
+              <span>Archive System // v1.0</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-b from-white to-neutral-500 bg-clip-text text-transparent">
+              Scan History
+            </h1>
+          </div>
+
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleExport} className="rounded-full bg-white/5 border-white/10 hover:bg-white/10">
+              <Download size={14} className="mr-2" /> Export Logs
+            </Button>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="rounded-full bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20">
+                  <Trash2 size={14} className="mr-2" /> WIPE ARCHIVE
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-neutral-900 border-white/10 text-white rounded-3xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Authorize Archive Deletion?</AlertDialogTitle>
+                  <AlertDialogDescription className="text-neutral-400">
+                    This will permanently scrub all stored scan metrics. This action is irreversible.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-2xl">Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={clearLogs} className="bg-rose-500 hover:bg-rose-600 text-white rounded-2xl">Confirm Wipe</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" onClick={handleExport}>
-            <Download className="mr-2" />
-            Export CSV
-          </Button>
+        {/* Integrated Command Center Panel */}
+        <SpotlightCard className="p-0 border-white/5 overflow-hidden bg-neutral-900/40 backdrop-blur-2xl">
+          <div className="flex flex-col">
+            {/* Filter Bar */}
+            <div className="p-6 border-b border-white/5 bg-white/5 flex flex-wrap items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Filter size={16} className="text-neutral-500" />
+                <span className="text-xs font-mono uppercase tracking-widest text-neutral-400">Filters</span>
+              </div>
 
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive">
-                <Trash2 className="mr-2" />
-                Clear Logs
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete all scan logs.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={clearLogs}>Continue</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      </div>
+              <div className="flex flex-wrap gap-4 items-center">
+                <Select
+                  value={severityFilter}
+                  onValueChange={(v) => setSeverityFilter(v as Severity | 'ALL')}
+                >
+                  <SelectTrigger className="w-[160px] bg-black/40 border-white/10 rounded-xl h-10 text-xs font-medium">
+                    <SelectValue placeholder="Severity" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-neutral-900 border-white/10 text-white">
+                    <SelectItem value="ALL">All Severities</SelectItem>
+                    <SelectItem value="CLEAN">Clean Only</SelectItem>
+                    <SelectItem value="SUSPICIOUS">Suspicious Only</SelectItem>
+                    <SelectItem value="HIGH-RISK">High-Risk Only</SelectItem>
+                  </SelectContent>
+                </Select>
 
-      <div className="flex items-center gap-2 mb-4 p-4 bg-card/80 backdrop-blur-sm border rounded-lg">
-        <Filter className="h-5 w-5 text-muted-foreground" />
-        <span className="font-medium mr-4">Filters:</span>
-        <Select
-          value={severityFilter}
-          onValueChange={(v) => setSeverityFilter(v as Severity | 'ALL')}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by severity..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Severities</SelectItem>
-            <SelectItem value="CLEAN">Clean</SelectItem>
-            <SelectItem value="SUSPICIOUS">Suspicious</SelectItem>
-            <SelectItem value="HIGH-RISK">High-Risk</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select
-          value={typeFilter}
-          onValueChange={(v) => setTypeFilter(v as ContentType | 'ALL')}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by type..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Types</SelectItem>
-            <SelectItem value="Text">Text</SelectItem>
-            <SelectItem value="Emoji">Emoji</SelectItem>
-            <SelectItem value="Image">Image</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+                <Select
+                  value={typeFilter}
+                  onValueChange={(v) => setTypeFilter(v as ContentType | 'ALL')}
+                >
+                  <SelectTrigger className="w-[160px] bg-black/40 border-white/10 rounded-xl h-10 text-xs font-medium">
+                    <SelectValue placeholder="Content Type" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-neutral-900 border-white/10 text-white">
+                    <SelectItem value="ALL">All Modalities</SelectItem>
+                    <SelectItem value="Text">Text Streams</SelectItem>
+                    <SelectItem value="Emoji">Emoji Payloads</SelectItem>
+                    <SelectItem value="Image">Image Buffers</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-      <div className="border rounded-lg flex-1 bg-card/80 backdrop-blur-sm">
-        <DashboardTable logs={filteredLogs} />
+              <div className="ml-auto flex items-center gap-3">
+                <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono text-neutral-500">
+                  RECORDS: {logs.length}
+                </div>
+                <div className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-mono text-blue-400">
+                  FILTERED: {filteredLogs.length}
+                </div>
+              </div>
+            </div>
+
+            {/* Content Area */}
+            <div className="min-h-[500px] p-2">
+              {filteredLogs.length === 0 ? (
+                <div className="h-[500px] flex flex-col items-center justify-center text-center space-y-4 animate-in fade-in duration-700">
+                  <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-neutral-600">
+                    <History size={32} />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-bold text-neutral-400 font-mono tracking-tighter">ARCHIVE_EMPTY</h3>
+                    <p className="text-[10px] text-neutral-600 uppercase tracking-tight">No historical records match current query params.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  <DashboardTable logs={filteredLogs} />
+                </div>
+              )}
+            </div>
+
+            {/* Terminal Footer */}
+            <div className="p-6 border-t border-white/5 bg-black/20 flex items-center justify-between">
+              <div className="flex gap-6">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">Database Linked</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                  <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">Local Session Storage</span>
+                </div>
+              </div>
+              <div className="text-[10px] font-mono text-neutral-600 flex items-center gap-4">
+                <span>ARCHIVE_INTEGRITY: 100%</span>
+                <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10">ST_DASH // 097</span>
+              </div>
+            </div>
+          </div>
+        </SpotlightCard>
       </div>
     </div>
   );

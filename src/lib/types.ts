@@ -1,15 +1,16 @@
-export type Severity = 'CLEAN' | 'SUSPICIOUS' | 'HIGH-RISK';
+export type Severity = 'Safe' | 'Low' | 'Medium' | 'High' | 'Critical';
 export type ContentType = 'Text' | 'Image' | 'Emoji';
 
 export type ScanResult = {
   id: string;
   timestamp: string;
-  type: ContentType;
+  content_type: ContentType;
   severity: Severity;
+  score: number;
   summary: string;
-  rawFindings: string;
+  findings: string;
+  reasons: string[];
   isFalsePositive?: boolean;
-  score?: number;
 };
 
 export interface EmojiSecurityConfig {
