@@ -157,7 +157,7 @@ export default function Home() {
 
                 <div className="pt-4">
                   <Button asChild className="bg-emerald-500 hover:bg-emerald-600 text-black font-bold h-12 px-8 rounded-full shadow-[0_0_30px_rgba(16,185,129,0.2)]">
-                    <a href="/api/download-extension" download="sentinel-prime-extension.zip">
+                    <a href="/downloads/sentinel-prime-extension.zip" download="sentinel-prime-extension.zip">
                       <Download size={18} className="mr-2" /> Download Extension
                     </a>
                   </Button>
