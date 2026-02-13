@@ -93,19 +93,6 @@ export default function Home() {
               <div className="mt-4 text-xs font-mono text-neutral-600">TX-04 // TEXT_FORENSICS</div>
             </SpotlightCard>
 
-            {/* Fast Scanning */}
-            <SpotlightCard className="flex flex-col justify-between group">
-              <div className="space-y-4">
-                <div className="h-12 w-12 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
-                  <Zap size={24} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-2">Hyper-Fast Processing</h3>
-                  <p className="text-sm text-neutral-400">Optimized algorithms for rapid scanning of large datasets without compromising detection accuracy.</p>
-                </div>
-              </div>
-              <div className="mt-4 text-xs font-mono text-neutral-600">RT-09 // PERFORMANCE</div>
-            </SpotlightCard>
 
             {/* Deep Insight */}
             <SpotlightCard className="md:col-span-2 flex flex-col justify-between group">

@@ -25,8 +25,6 @@ export async function analyzeContent(
     formData: FormData
 ): Promise<ScanResult | { error: string }> {
     try {
-        await sleep(1000); // Simulate processing time
-
         console.log("[analyzeContent] Starting analysis...");
         const text = formData.get('textInput') as string | null;
         const imageFile = formData.get('imageInput') as File | null;

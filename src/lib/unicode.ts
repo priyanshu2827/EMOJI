@@ -134,17 +134,82 @@ export interface HomoglyphResult {
         detected: boolean;
         pairs: Array<{ original: string; spoof: string; similarity: number }>;
     };
+    skeletalAnalysis?: {
+        suspicious: boolean;
+        skeleton: string;
+        issues: number;
+    };
+    entropy?: {
+        score: number;
+        suspicious: boolean;
+    };
+    snow?: {
+        detected: boolean;
+        reasons: string[];
+    };
+}
+
+/**
+ * Sentinel Prime: Unicode NFKC Normalization
+ * Bypasses normalization-based evasion by standardizing text
+ */
+export function normalizeText(text: string): string {
+    return text.normalize('NFKC');
+}
+
+/**
+ * Sentinel Prime: Shannon Entropy Calculation
+ * Flag high-entropy Unicode blocks that may contain hidden data
+ */
+export function calculateShannonEntropy(text: string): { score: number; suspicious: boolean } {
+    if (text.length === 0) return { score: 0, suspicious: false };
+    const freqs: Record<string, number> = {};
+    for (const char of text) freqs[char] = (freqs[char] || 0) + 1;
+    let entropy = 0;
+    const len = text.length;
+    for (const char in freqs) {
+        const p = freqs[char] / len;
+        entropy -= p * Math.log2(p);
+    }
+    // Suspicious if entropy is abnormally high for natural language
+    // Natural English is usually 3.5-5.0. Stego often > 6.0
+    return { score: entropy, suspicious: entropy > 5.5 && text.length > 20 };
+}
+
+/**
+ * Sentinel Prime: SNOW Steganography Detection
+ * Detects trailing whitespaces (spaces/tabs) used in SNOW-style schemes
+ */
+export function detectSnowSteganography(text: string): { detected: boolean; reasons: string[] } {
+    const lines = text.split('\n');
+    const reasons: string[] = [];
+    let trailingCount = 0;
+
+    for (const line of lines) {
+        if (/[ \t]+$/.test(line)) {
+            trailingCount++;
+        }
+    }
+
+    if (trailingCount > 3 || (trailingCount > 0 && trailingCount === lines.length)) {
+        reasons.push(`detected_trailing_whitespace_on_${trailingCount}_lines`);
+    }
+
+    return { detected: reasons.length > 0, reasons };
 }
 
 export function detect_homoglyphs(text: string, detailed: boolean = false): HomoglyphResult {
+    const normalized = normalizeText(text);
     const found: { char: string, looks_like: string }[] = [];
     const byCategory: Record<string, HomoglyphDetection[]> = {};
     const usedScripts = new Set<string>();
-    const markov = analyzeMarkovChain(text);
+    const markov = analyzeMarkovChain(normalized);
     const visualSpoofs: Array<{ original: string; spoof: string; similarity: number }> = [];
+    const entropy = calculateShannonEntropy(normalized);
+    const snow = detectSnowSteganography(text); // Use original text for SNOW check
 
-    for (let i = 0; i < text.length; i++) {
-        const ch = text[i];
+    for (let i = 0; i < normalized.length; i++) {
+        const ch = normalized[i];
         if (HOMOGLYPHS[ch]) {
             const looksLike = HOMOGLYPHS[ch];
             found.push({ char: ch, looks_like: looksLike });
@@ -178,7 +243,38 @@ export function detect_homoglyphs(text: string, detailed: boolean = false): Homo
         visualSpoofing: {
             detected: visualSpoofs.length > 0,
             pairs: visualSpoofs
+        },
+        skeletalAnalysis: analyzeSkeletalMapping(normalized),
+        entropy,
+        snow
+    };
+}
+
+/**
+ * Sentinel Prime: TR39 Skeletal Mapping
+ * Converts text to a skeletal form to detect hidden homoglyph usage
+ */
+export function analyzeSkeletalMapping(text: string): { suspicious: boolean; skeleton: string; issues: number } {
+    let skeleton = '';
+    let issues = 0;
+
+    for (const char of text) {
+        if (HOMOGLYPHS[char]) {
+            skeleton += HOMOGLYPHS[char];
+            issues++;
+        } else {
+            skeleton += char;
         }
+    }
+
+    // Check for "mixed-script" confusables (TR39)
+    // suspicious if has issues but skeleton isn't purely composed of confusables
+    const suspicious = issues > 0 && issues < [...text].length * 0.8;
+
+    return {
+        suspicious,
+        skeleton,
+        issues
     };
 }
 

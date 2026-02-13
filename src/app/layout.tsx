@@ -5,6 +5,14 @@ import Header from '@/components/app/header';
 import { cn } from '@/lib/utils';
 import FloatingLines from '@/components/app/floating-lines';
 
+import { Inter } from 'next/font/google';
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
+
 export const metadata: Metadata = {
   title: 'INVISIFY',
   description: 'A Steganography Detection System',
@@ -16,18 +24,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" className={cn('h-full', inter.variable)}>
       <body
         className={cn(
-          'font-body antialiased h-full flex flex-col bg-black overflow-x-hidden',
+          'font-body antialiased h-full flex flex-col bg-black overflow-x-hidden p-0 m-0',
           process.env.NODE_ENV === 'development' ? 'debug-screens' : ''
         )}
       >

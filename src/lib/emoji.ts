@@ -1,4 +1,5 @@
 // This is a TypeScript port of the logic from https://github.com/mauricelambert/EmojiEncode
+import { EMOJI_REGEX } from './unicode';
 
 const EMOJI_CHARS = "😂😍😭🔥🤔🤯👍🎉🤩🤢🤮😱👋🙏🤝👏👎🤡🤑😎🤓🧐🤖👽👻💀👾🐸🐵🙈🙉🙊🐒🐔🐧🐦🐤🐣🐺🐗🐴🦄🐝🐛🦋🐌🐞🐜🦗🕷🦂🐢🐍🦎🐙🦑🦐🦞🦀🐡🐠🐟🐬🐳🐋🦈🐊🐅🐆🦓🦍🐘🦛🐪🦒𦘘🐃🐂🐄🐎🐖🐏🐑𦙙🐐🦌🐕🐩🐈🐓🦃𦚚🦜🦢🕊🐇𦛛𦜜🐁🐀🐿𦔔🐾🐉🐲🌵🎄🌲🌳🌴🌱🌿☘️🍀🎍🎋🍃🍂🍁🍄🌾💐🌷🌹🥀🌺🌸🌼🌻🌞🌝";
 
@@ -83,6 +84,64 @@ export const VARIATION_SELECTORS_EXTENDED = new Array(16).fill(0).map((_, i) =>
     String.fromCharCode(0xFE00 + i)
 );
 
+/**
+ * Sentinel Prime: Legal-Sequence Validator
+ * Validates emoji sequences against known standard patterns (Simplified CLDR)
+ */
+export function isLegalEmojiSequence(cluster: string): boolean {
+    if (cluster.length <= 2) return true; // Single emoji or basic surrogate pair
+
+    // Flag sequences
+    if (/^[\uD83C][\uDDE6-\uDDFF][\uD83C][\uDDE6-\uDDFF]$/.test(cluster)) return true;
+
+    // ZWJ Sequences (Common: Families, Couples, Multi-tone)
+    const zwjCount = (cluster.match(/\u200D/g) || []).length;
+    if (zwjCount > 0) {
+        // Most legitimate ZWJ sequences have 1-3 joiners
+        // Stego often uses 4+ or weird placements
+        if (zwjCount > 3) return false;
+
+        // Check for double ZWJ or ZWJ at ends
+        if (cluster.includes('\u200D\u200D') || cluster.startsWith('\u200D') || cluster.endsWith('\u200D')) return false;
+    }
+
+    // Variation Selectors placement
+    const vsCount = VARIATION_SELECTORS_EXTENDED.filter(vs => cluster.includes(vs)).length;
+    if (vsCount > 1) return false; // Usually only one VS per grapheme
+
+    return true;
+}
+
+/**
+ * Sentinel Prime: Grapheme-Feature Modeling
+ * Extracts statistical features from grapheme clusters for anomaly detection
+ */
+export function extractGraphemeFeatures(text: string) {
+    const clusters = getGraphemeClusters(text);
+    let totalZwj = 0;
+    let totalVs = 0;
+    let illegalSequences = 0;
+    let complexClusters = 0;
+
+    for (const cluster of clusters) {
+        totalZwj += (cluster.match(/\u200D/g) || []).length;
+        totalVs += VARIATION_SELECTORS_EXTENDED.filter(vs => cluster.includes(vs)).length;
+        if (!isLegalEmojiSequence(cluster)) illegalSequences++;
+        if (cluster.length > 4) complexClusters++;
+    }
+
+    const density = clusters.length > 0 ? (totalZwj + totalVs) / clusters.length : 0;
+
+    return {
+        count: clusters.length,
+        zwjDensity: totalZwj / Math.max(1, clusters.length),
+        vsDensity: totalVs / Math.max(1, clusters.length),
+        illegalSequenceRatio: illegalSequences / Math.max(1, clusters.length),
+        complexClusterRatio: complexClusters / Math.max(1, clusters.length),
+        anomalyScore: (illegalSequences * 20) + (totalZwj * 5) + (totalVs * 5)
+    };
+}
+
 function simpleTokenize(text: string): string[] {
     return text.split(/[\s\p{P}]+/u).filter(t => t.length > 0);
 }
@@ -108,6 +167,12 @@ export function detectTokenExplosion(text: string, maxTokensPerCluster: number =
 }
 
 function getGraphemeClusters(text: string): string[] {
+    // Multi-decoder Ensemble: Use Intl.Segmenter if available, fallback to regex
+    if (typeof Intl !== 'undefined' && (Intl as any).Segmenter) {
+        const segmenter = new (Intl as any).Segmenter(undefined, { granularity: 'grapheme' });
+        return Array.from(segmenter.segment(text)).map((s: any) => s.segment);
+    }
+
     const clusters: string[] = [];
     let i = 0;
     while (i < text.length) {
@@ -136,6 +201,10 @@ export function analyzeGraphemeClusters(text: string) {
     const complexClusters: string[] = [];
     const reasons: string[] = [];
     for (const cluster of clusters) {
+        if (!isLegalEmojiSequence(cluster)) {
+            complexClusters.push(cluster);
+            reasons.push(`illegal_emoji_sequence_detected`);
+        }
         if (cluster.length > 10) {
             complexClusters.push(cluster);
             reasons.push(`overly_complex_cluster (${cluster.length} chars)`);
@@ -177,11 +246,97 @@ export function detectEmojiPatternFrequency(text: string) {
     return { suspicious: reasons.length > 0 || !!verified, frequencyScore, reasons, verifiedPayload: verified || undefined };
 }
 
+/**
+ * Sentinel Prime: Emoji Nibble Steganalysis
+ * Detects if a small set of emojis (4-16) is used repeatedly to encode data (e.g., Stegoji)
+ */
+export function analyzeEmojiNibbles(text: string) {
+    const clusters = getGraphemeClusters(text).filter(c => EMOJI_REGEX.test(c));
+    if (clusters.length < 10) return { suspicious: false, reasons: [] };
+
+    const uniqueEmojiCount = new Set(clusters).size;
+    const reasons: string[] = [];
+
+    // Most stego nibble schemes use exactly 16 (or sometimes 4 or 8) emojis.
+    // If a long sequence uses exactly 2^n emojis, it's highly suspicious.
+    const powersOfTwo = [2, 4, 8, 16, 32];
+    if (powersOfTwo.includes(uniqueEmojiCount) && clusters.length > 20) {
+        reasons.push(`nibble_stego_detected (exact_${uniqueEmojiCount}_emoji_alphabet)`);
+    } else if (uniqueEmojiCount < 5 && clusters.length > 15) {
+        reasons.push(`low_entropy_emoji_nibble_encoding (${uniqueEmojiCount}_unique)`);
+    }
+
+    // Distribution check: uniform distribution across the small set is typical for stego
+    const counts: Record<string, number> = {};
+    for (const c of clusters) counts[c] = (counts[c] || 0) + 1;
+    const values = Object.values(counts);
+    const avg = clusters.length / uniqueEmojiCount;
+    const variance = values.reduce((sum, v) => sum + Math.pow(v - avg, 2), 0) / uniqueEmojiCount;
+
+    if (variance < 2 && clusters.length > 30) {
+        reasons.push('abnormally_uniform_emoji_distribution (stego_signature)');
+    }
+
+    return { suspicious: reasons.length > 0, reasons, alphabetSize: uniqueEmojiCount };
+}
+
+/**
+ * Sentinel Prime: Emoji Frequency Analysis
+ * Flags anomalies in emoji sequences vs. natural language baselines
+ */
+export function analyzeEmojiFrequency(text: string) {
+    const clusters = getGraphemeClusters(text).filter(c => EMOJI_REGEX.test(c));
+    if (clusters.length < 5) return { suspicious: false, reasons: [] };
+
+    const reasons: string[] = [];
+    // Natural emoji usage rarely has more than 3 different emojis in a row without text or repetition
+    let diverseRun = 0;
+    let maxDiverseRun = 0;
+    const seenLocal = new Set<string>();
+
+    for (const c of clusters) {
+        if (!seenLocal.has(c)) {
+            diverseRun++;
+            seenLocal.add(c);
+        } else {
+            maxDiverseRun = Math.max(maxDiverseRun, diverseRun);
+            diverseRun = 1;
+            seenLocal.clear();
+            seenLocal.add(c);
+        }
+    }
+    maxDiverseRun = Math.max(maxDiverseRun, diverseRun);
+
+    if (maxDiverseRun > 10) {
+        reasons.push(`abnormal_emoji_diversity_run (${maxDiverseRun}_unique_sequence)`);
+    }
+
+    return { suspicious: reasons.length > 0, reasons };
+}
+
 export function enhancedEmojiSecurityScan(text: string, config: EmojiSecurityConfig = {}): EmojiThreatReport {
     const threats: EmojiThreatReport['threats'] = {};
     const reasons: string[] = [];
     let riskScore = 0;
     let verifiedPayload: string | undefined;
+
+    const nibbleCheck = analyzeEmojiNibbles(text);
+    if (nibbleCheck.suspicious) {
+        reasons.push(...nibbleCheck.reasons);
+        riskScore += 45;
+    }
+
+    const freqCheck = analyzeEmojiFrequency(text);
+    if (freqCheck.suspicious) {
+        reasons.push(...freqCheck.reasons);
+        riskScore += 30;
+    }
+
+    const features = extractGraphemeFeatures(text);
+    if (features.anomalyScore > 10) {
+        riskScore += Math.min(40, features.anomalyScore);
+        if (features.illegalSequenceRatio > 0.1) reasons.push('high_ratio_of_illegal_emoji_sequences');
+    }
 
     const encodingCheck = detect_emoji_patterns(text);
     if (encodingCheck.suspicious) {
@@ -278,3 +433,4 @@ export function detect_emoji_patterns(text: string) {
     if (suspicious) return { suspicious: true, reasons: ['high_density_of_specific_encoding_emojis'] };
     return { suspicious: false, reasons: [] };
 }
+
